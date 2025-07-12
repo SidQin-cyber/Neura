@@ -1,0 +1,35 @@
+[
+  {
+    "name": "张三",
+    "title": "高级前端工程师",
+    "experience": "5年",
+    "skills": ["React", "TypeScript", "Vue.js", "Node.js"],
+    "location": "北京",
+    "phone": "13812345678",
+    "email": "zhangsan@example.com",
+    "education": "本科",
+    "salary_expectation": "25000-35000"
+  },
+  {
+    "name": "李四",
+    "title": "资深后端工程师",
+    "experience": "8年",
+    "skills": ["Java", "Spring Boot", "MySQL", "Redis", "Kafka"],
+    "location": "上海",
+    "phone": "13987654321",
+    "email": "lisi@example.com",
+    "education": "硕士",
+    "salary_expectation": "30000-45000"
+  },
+  {
+    "name": "王五",
+    "title": "UI/UX设计师",
+    "experience": "3年",
+    "skills": ["Figma", "Sketch", "Adobe XD", "Prototyping"],
+    "location": "深圳",
+    "phone": "13611111111",
+    "email": "wangwu@example.com",
+    "education": "本科",
+    "salary_expectation": "15000-25000"
+  }
+] 

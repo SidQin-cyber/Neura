@@ -1,0 +1,35 @@
+[
+  {
+    "title": "高级React开发工程师",
+    "company": "字节跳动",
+    "location": "北京",
+    "salary_range": "25000-40000",
+    "experience_required": "3-5年",
+    "skills_required": ["React", "TypeScript", "Redux", "Webpack", "Git"],
+    "description": "负责前端产品开发，参与架构设计，优化用户体验",
+    "job_type": "全职",
+    "education": "本科及以上"
+  },
+  {
+    "title": "Java高级开发工程师",
+    "company": "阿里巴巴",
+    "location": "杭州",
+    "salary_range": "30000-50000",
+    "experience_required": "5-8年",
+    "skills_required": ["Java", "Spring Boot", "MySQL", "Redis", "Dubbo"],
+    "description": "负责后端系统架构设计和核心功能开发",
+    "job_type": "全职",
+    "education": "本科及以上"
+  },
+  {
+    "title": "产品设计师",
+    "company": "腾讯",
+    "location": "深圳",
+    "salary_range": "20000-35000",
+    "experience_required": "2-4年",
+    "skills_required": ["Figma", "Sketch", "用户体验设计", "交互设计"],
+    "description": "负责产品界面设计和用户体验优化",
+    "job_type": "全职",
+    "education": "本科及以上"
+  }
+] 

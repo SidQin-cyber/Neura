@@ -1,0 +1,35 @@
+{
+  "candidate_id": "C20250712001",
+  "name": "Liu Xiaoming",
+  "title": "高级后端工程师",
+  "gender": "Male",
+  "age": 32,
+  "location": "Shanghai",
+  "current_company": "Tencent",
+  "current_title": "Senior Backend Engineer",
+  "years_of_experience": 8,
+  "education": {
+    "degree": "Master",
+    "major": "Computer Science",
+    "university": "Fudan University",
+    "graduation_year": 2015
+  },
+  "skills": [
+    "Golang",
+    "Microservices",
+    "Kubernetes",
+    "PostgreSQL",
+    "Redis",
+    "Docker"
+  ],
+  "current_salary": "45万/年",
+  "expected_salary": "60万/年",
+  "phone": "13800138000",
+  "email": "liu.xiaoming@example.com",
+  "preferred_location": "Shanghai / Remote",
+  "job_search_status": "Active",
+  "english_level": "Fluent",
+  "resume_link": "https://example.com/resume_liu_xiaoming.pdf",
+  "consultant_comment": "技术背景扎实，稳定性高，具备架构能力，适合大型平台型公司中后端岗位。",
+  "last_contacted": "2025-07-11"
+} 
