@@ -1,0 +1,31 @@
+{
+  "job_id": "J20250712001",
+  "title": "高级后端工程师",
+  "company": "字节跳动",
+  "location": "北京",
+  "employment_type": "full_time",
+  "salary_min": 35000,
+  "salary_max": 55000,
+  "currency": "CNY",
+  "description": "负责大型分布式系统的设计与开发，参与核心业务的架构设计和优化。",
+  "requirements": "1. 计算机相关专业本科以上学历\n2. 5年以上后端开发经验\n3. 熟悉Java、Go等编程语言\n4. 具有大型分布式系统设计经验\n5. 具备良好的沟通能力和团队协作精神",
+  "benefits": "1. 竞争力的薪资待遇\n2. 股票期权\n3. 完善的培训体系\n4. 弹性工作时间\n5. 年度体检和保险",
+  "skills_required": [
+    "Java",
+    "Go",
+    "Microservices",
+    "Kubernetes",
+    "Redis",
+    "MySQL",
+    "Kafka"
+  ],
+  "experience_required": 5,
+  "education_required": "本科",
+  "industry": "互联网",
+  "department": "技术部",
+  "hiring_manager": "张总监",
+  "urgent": false,
+  "remote_work": true,
+  "posted_date": "2025-07-11",
+  "application_deadline": "2025-08-11"
+} 
