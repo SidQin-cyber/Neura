@@ -181,7 +181,7 @@ export function RenderMessage({
           message.content[0] &&
           typeof message.content[0] === 'object' &&
           'name' in message.content[0] &&
-          'title' in message.content[0]
+          'current_title' in message.content[0]
         ) {
           return (
             <CandidateResultsSection
