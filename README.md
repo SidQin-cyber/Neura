@@ -1,156 +1,124 @@
-# Neura AI 招聘平台
+# Neura - AI 招聘平台
 
-基于 AI 的智能招聘平台，提供候选人搜索、职位匹配和数据管理功能。
+## 🎯 项目概述
 
-![Neura Screenshot](/public/screenshot-2025-05-04.png)
+Neura 是一个基于 AI 的智能招聘平台，通过混合搜索技术和大语言模型，实现高效的人才匹配。
 
-## 🚀 快速开始
+## 🚀 技术栈
 
-### 1. 创建Admin账户
+- **前端**: Next.js 14 (App Router), React, TypeScript
+- **UI**: Shadcn UI, Radix UI, Tailwind CSS
+- **后端**: Supabase (PostgreSQL + Edge Functions)
+- **AI**: Vercel AI SDK, OpenAI
+- **部署**: Vercel + Supabase
 
-登录 [Supabase Dashboard](https://supabase.com/dashboard) 并在SQL Editor中执行：
+## 📋 开发规则
 
-```sql
--- 创建admin用户
-INSERT INTO auth.users (
-  id, instance_id, email, encrypted_password, email_confirmed_at,
-  created_at, updated_at, role, aud, confirmation_token,
-  email_change_token_new, recovery_token, raw_app_meta_data,
-  raw_user_meta_data, is_super_admin, last_sign_in_at,
-  phone, phone_confirmed_at, phone_change_token,
-  email_change_token_current, email_change_confirm_status,
-  banned_until, reauthentication_token, reauthentication_sent_at,
-  is_sso_user, deleted_at, is_anonymous
-) VALUES (
-  gen_random_uuid(), '00000000-0000-0000-0000-000000000000',
-  'admin@neura.com', crypt('123456', gen_salt('bf')), now(),
-  now(), now(), 'authenticated', 'authenticated', '',
-  '', '', '{"provider":"email","providers":["email"]}',
-  '{"full_name":"Admin User"}', false, now(),
-  null, null, '', '', 0, null, '', null, false, null, false
-) ON CONFLICT (email) DO NOTHING;
+### 🔥 重要：数据库开发规则
+
+**所有数据库修改必须遵循以下流程：**
+```
+本地修改 → 生成迁移 → 测试 → 提交 → 部署到线上
 ```
 
-### 2. 启动应用
+**详细规则请参考：**
+- [数据库开发规则](./DATABASE_DEVELOPMENT_RULES.md)
+- [本地开发指南](./LOCAL_DEVELOPMENT_GUIDE.md)
+
+### 核心原则
+- ✅ 使用 Supabase CLI 生成迁移文件
+- ✅ 每个变更都必须有回滚方案
+- ✅ 在本地充分测试后再部署
+- ❌ 禁止直接在线上执行 SQL
+
+## 🛠️ 开发环境设置
+
+### 前提条件
+- Node.js 18+
+- Docker Desktop
+- Supabase CLI
+
+### 快速开始
 
 ```bash
-git clone <repository-url>
-cd Neura
+# 1. 克隆项目
+git clone [your-repo-url]
+cd neura
+
+# 2. 安装依赖
 npm install
+
+# 3. 启动本地 Supabase
+supabase start
+
+# 4. 启动开发服务器
 npm run dev
-```
-
-### 3. 登录
-
-访问 `http://localhost:3000` 并使用以下账户：
-- **邮箱**: `admin@neura.com`
-- **密码**: `123456`
-
-## 🛠 核心功能
-
-### 认证系统
-- ✅ **强制登录** - 必须登录才能访问
-- ✅ **极简界面** - 简洁的登录体验
-- ✅ **会话管理** - 自动会话刷新
-- ✅ **用户隔离** - 基于RLS的数据隔离
-
-### 数据管理
-- ✅ **候选人上传** - 支持JSON格式（单个对象/数组）
-- ✅ **职位上传** - 支持JSON格式（单个对象/数组）
-- ✅ **数据分离** - 候选人和职位独立存储
-- ✅ **格式验证** - 智能JSON验证和转换
-
-### 搜索功能
-- ✅ **语义搜索** - 基于向量相似度的智能搜索
-- ✅ **候选人搜索** - 独立的候选人搜索通路
-- ✅ **职位搜索** - 独立的职位搜索通路
-- ✅ **高级筛选** - 多维度搜索筛选
-
-### 用户界面
-- ✅ **响应式设计** - 适配不同屏幕尺寸
-- ✅ **侧边栏导航** - 48px窄边栏设计
-- ✅ **对话式界面** - 聊天式搜索交互
-- ✅ **实时反馈** - Toast通知和状态指示
-
-## 🏗 技术架构
-
-### 前端
-- **Next.js 15** - App Router + React Server Components
-- **TypeScript** - 类型安全
-- **Tailwind CSS** - 样式系统
-- **shadcn/ui** - UI组件库
-
-### 后端
-- **Supabase** - 数据库 + 认证 + 存储
-- **PostgreSQL** - 关系型数据库
-- **pgvector** - 向量搜索
-- **Row Level Security** - 数据安全
-
-### AI 能力
-- **OpenAI API** - GPT-4o + text-embedding-3-small
-- **向量搜索** - 语义相似度匹配
-- **智能解析** - 简历和职位智能处理
-
-## 📁 数据格式
-
-### 候选人JSON示例
-
-```json
-{
-  "name": "张三",
-  "title": "高级前端工程师",
-  "email": "zhangsan@example.com",
-  "phone": "13800138000",
-  "location": "北京",
-  "skills": ["React", "TypeScript", "Node.js"],
-  "years_of_experience": 5,
-  "expected_salary_min": 25000,
-  "expected_salary_max": 35000
-}
-```
-
-### 职位JSON示例
-
-```json
-{
-  "title": "高级前端工程师",
-  "company": "科技公司",
-  "location": "上海",
-  "employment_type": "full_time",
-  "salary_min": 20000,
-  "salary_max": 40000,
-  "skills_required": ["React", "Vue", "TypeScript"],
-  "experience_required": 3
-}
 ```
 
 ## 📚 文档
 
-- [登录功能设置指南](docs/LOGIN_SETUP_GUIDE.md)
-- [上传功能验证指南](docs/UPLOAD_VERIFICATION_GUIDE.md)
-- [JSON格式支持说明](docs/JSON_FORMAT_SUPPORT.md)
-- [配置指南](NEURA_CONFIGURATION_GUIDE.md)
+- [本地开发指南](./LOCAL_DEVELOPMENT_GUIDE.md)
+- [数据库开发规则](./DATABASE_DEVELOPMENT_RULES.md)
+- [混合搜索算法说明](./HYBRID_SEARCH_README.md)
+- [配置指南](./NEURA_CONFIGURATION_GUIDE.md)
 
-## 🔒 安全特性
+## 🔧 核心功能
 
-- **强制认证** - 所有路由都需要登录
-- **数据隔离** - 用户只能访问自己的数据
-- **会话安全** - 自动会话管理和刷新
-- **API保护** - 所有API端点都需要认证
+### 混合搜索算法
+- 向量搜索（语义理解）
+- 全文搜索（关键词匹配）
+- 加权融合排序
 
-## 🎯 项目状态
+### AI 驱动的功能
+- 智能简历解析
+- 自动技能提取
+- 候选人-职位匹配
+- 对话式搜索界面
 
-- ✅ **基础架构** - 完整的前后端架构
-- ✅ **认证系统** - 强制登录和会话管理
-- ✅ **数据管理** - 上传、存储、验证
-- ✅ **搜索功能** - 语义搜索和筛选
-- ✅ **用户界面** - 响应式设计和交互
-- ✅ **部署就绪** - 可投入生产使用
+## 🚀 部署
 
-## 📞 技术支持
+### 数据库部署
+```bash
+# 1. 在本地测试
+supabase db reset
 
-如有问题，请查看相关文档或联系技术支持。
+# 2. 部署到线上
+supabase db push
+```
+
+### 前端部署
+```bash
+# 推送到 main 分支会自动触发 Vercel 部署
+git push origin main
+```
+
+## 📊 项目结构
+
+```
+neura/
+├── app/                 # Next.js App Router
+├── components/          # React 组件
+├── lib/                 # 工具函数和配置
+├── supabase/           # Supabase 配置和迁移
+│   ├── migrations/     # 数据库迁移文件
+│   └── functions/      # Edge Functions
+├── database/           # 数据库脚本（仅参考）
+└── docs/              # 项目文档
+```
+
+## 🤝 贡献指南
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 遵循数据库开发规则
+4. 提交变更 (`git commit -m 'Add some amazing feature'`)
+5. 推送到分支 (`git push origin feature/amazing-feature`)
+6. 创建 Pull Request
+
+## 📝 许可证
+
+MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
-**注意**: 这是内测版本，用户需要手动创建。不提供自助注册功能。
+**⚠️ 重要提醒：请务必阅读并遵循 [数据库开发规则](./DATABASE_DEVELOPMENT_RULES.md)**

@@ -1,16 +1,32 @@
 {
-  "deno.enable": true,
-  "deno.enablePaths": ["./supabase/functions"],
-  "deno.lint": false,
-  "deno.unstable": true,
-  "deno.config": "./supabase/functions/deno.json",
-  "deno.importMap": "./supabase/functions/import_map.json",
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
-  "typescript.preferences.importModuleSpecifier": "relative",
-  "typescript.suggest.autoImports": false,
+  "deno.config": "./supabase/functions/deno.json",
+  "deno.enable": true,
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
+  "deno.importMap": "./supabase/functions/import_map.json",
+  "deno.lint": true,
+  "deno.unstable": [
+    "bare-node-builtins",
+    "byonm",
+    "sloppy-imports",
+    "unsafe-proto",
+    "webgpu",
+    "broadcast-channel",
+    "worker-options",
+    "cron",
+    "kv",
+    "ffi",
+    "fs",
+    "http",
+    "net"
+  ],
   "files.associations": {
     "supabase/functions/**/*.ts": "typescript"
-  }
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": false
 }
