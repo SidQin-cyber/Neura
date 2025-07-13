@@ -137,6 +137,14 @@ const config = {
   					transform: 'translateX(100%)',
   					opacity: '0'
   				}
+			},
+			'shimmer': {
+				'0%': {
+					transform: 'translateX(-100%)'
+				},
+				'100%': {
+					transform: 'translateX(100%)'
+				}
   			}
   		},
   		animation: {
@@ -145,7 +153,8 @@ const config = {
   			'collapse-down': 'collapse-down 0.1s ease-in-out',
   			'collapse-up': 'collapse-up 0.1s ease-in-out',
   			'slide-in-right': 'slide-in-right 0.2s ease-out',
-  			'slide-out-right': 'slide-out-right 0.2s ease-out'
+			'slide-out-right': 'slide-out-right 0.2s ease-out',
+			'shimmer': 'shimmer 2s infinite linear'
   		},
   		fontFamily: {
   			sans: [

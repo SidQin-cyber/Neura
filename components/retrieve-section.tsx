@@ -52,7 +52,7 @@ export function RetrieveSection({
           <SearchResults results={data.results} />
         </Section>
       ) : (
-        <DefaultSkeleton />
+        <DefaultSkeleton variant="candidate" count={2} />
       )}
     </CollapsibleMessage>
   )

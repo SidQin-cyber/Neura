@@ -14,18 +14,21 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
-import { Link2, LogOut, Palette } from 'lucide-react'
+import { Link2, LogOut, Languages } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { ExternalLinkItems } from './external-link-items'
-import { ThemeMenuItems } from './theme-menu-items'
+import { LanguageMenuItems } from './language-menu-items'
 import { Button } from './ui/button'
+import { useLanguage } from '@/lib/context/language-context'
 
 interface UserMenuProps {
   user: User
+  variant?: 'default' | 'sidebar'
 }
 
-export default function UserMenu({ user }: UserMenuProps) {
+export default function UserMenu({ user, variant = 'default' }: UserMenuProps) {
   const router = useRouter()
+  const { t } = useLanguage()
   const userName =
     user.user_metadata?.full_name || user.user_metadata?.name || 'User'
   const avatarUrl =
@@ -52,11 +55,14 @@ export default function UserMenu({ user }: UserMenuProps) {
     router.refresh()
   }
 
+  const buttonSize = variant === 'sidebar' ? 'h-10 w-10' : 'h-8 w-8'
+  const avatarSize = variant === 'sidebar' ? 'h-10 w-10' : 'h-8 w-8'
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
+        <Button variant="ghost" className={`relative ${buttonSize} rounded-full hover:bg-accent hover:text-accent-foreground transition-colors`}>
+          <Avatar className={avatarSize}>
             <AvatarImage src={avatarUrl} alt={userName} />
             <AvatarFallback>{getInitials(userName, user.email)}</AvatarFallback>
           </Avatar>
@@ -76,17 +82,17 @@ export default function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <Palette className="mr-2 h-4 w-4" />
-            <span>Theme</span>
+            <Languages className="mr-2 h-4 w-4" />
+            <span>{t('menu.language')}</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <ThemeMenuItems />
+            <LanguageMenuItems />
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Link2 className="mr-2 h-4 w-4" />
-            <span>Links</span>
+            <span>{t('menu.links')}</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <ExternalLinkItems />
@@ -95,7 +101,7 @@ export default function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Logout</span>
+          <span>{t('menu.logout')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

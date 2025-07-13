@@ -186,7 +186,7 @@ export function SearchResultsSection({
       {/* 结果统计 */}
       <div className="bg-gray-50 p-4 rounded-lg">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>
+          <span className="transform -translate-x-2">
             共找到 {results.length} 个{searchType === 'candidate' ? '候选人' : '职位'}
           </span>
           <span>

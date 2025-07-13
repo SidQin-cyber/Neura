@@ -80,6 +80,8 @@ export async function POST(request: NextRequest) {
         console.log(`✅ 候选人 ${candidateData.name} 向量化完成，维度: ${embedding.length}`)
       } else {
         console.warn(`⚠️ 候选人 ${candidateData.name} 向量化失败`)
+        // 如果向量化失败，跳过这个候选人
+        continue
       }
       
       resumeData.push(candidateData)
@@ -93,16 +95,15 @@ export async function POST(request: NextRequest) {
     console.log('📊 准备通过RPC函数插入数据，记录数:', resumeData.length)
 
     const insertPromises = resumeData.map(async (item) => {
-      // 关键：将embedding数组格式化为PostgreSQL VECTOR类型字符串
-      const embeddingStr = `[${item.embedding.join(',')}]`
-      
+      // 🔧 处理候选人数据并插入
       console.log(`🔧 处理候选人 ${item.name}:`, {
         embeddingType: typeof item.embedding,
         embeddingIsArray: Array.isArray(item.embedding),
-        embeddingLength: Array.isArray(item.embedding) ? item.embedding.length : 0,
-        embeddingStrLength: embeddingStr.length
+        embeddingLength: item.embedding?.length,
+        embeddingStrLength: JSON.stringify(item.embedding).length
       })
 
+      // ✅ 使用RPC函数插入，确保embedding正确转换
       const { data, error } = await supabase.rpc('insert_candidate_with_embedding', {
         p_owner_id: item.owner_id,
         p_name: item.name,
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
         p_languages: item.languages ? (typeof item.languages === 'string' ? { value: item.languages } : item.languages) : null,
         p_raw_data: item.raw_data,
         p_status: item.status,
-        p_embedding: embeddingStr
+        p_embedding: JSON.stringify(item.embedding) // RPC函数会处理转换
       })
 
       if (error) {
@@ -130,12 +131,12 @@ export async function POST(request: NextRequest) {
       }
       
       console.log(`✅ 候选人 ${item.name} 插入成功，ID:`, data)
-      return data
+      return { id: data, name: item.name }
     })
 
     try {
       const insertResults = await Promise.all(insertPromises)
-      console.log(`✅ 数据库RPC插入成功，记录数: ${insertResults.length}`)
+      console.log(`✅ 数据库插入成功，记录数: ${insertResults.length}`)
       console.log('🎯 插入的数据ID:', insertResults)
       
       return NextResponse.json({ 
@@ -158,4 +159,4 @@ export async function POST(request: NextRequest) {
       error: '服务器错误: ' + (error instanceof Error ? error.message : '未知错误')
     }, { status: 500 })
   }
-} 
+}

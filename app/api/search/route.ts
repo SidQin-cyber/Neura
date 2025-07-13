@@ -30,21 +30,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 先检查用户是否有数据
-    const { data: userCheck, error: userCheckError } = await supabase
-      .from('resumes')
-      .select('id, name, owner_id, status, embedding')
-      .eq('owner_id', user.id)
-    
-    console.log('🔍 用户数据检查:')
-    console.log('- 查询错误:', userCheckError)
-    console.log('- 用户数据数量:', userCheck?.length || 0)
-    console.log('- 用户数据详情:', userCheck?.map(item => ({
-      id: item.id,
-      name: item.name,
-      status: item.status,
-      hasEmbedding: item.embedding !== null
-    })))
+    // 移除用户数据检查，实现数据共享模式
 
     // 1. 生成查询向量
     console.log('生成查询向量:', query)
@@ -80,7 +66,7 @@ export async function POST(request: NextRequest) {
     const experienceFilter = filters?.experience ? parseInt(filters.experience) : null
     
     if (mode === 'candidates') {
-      // 使用简化的向量搜索函数
+      // 使用简化的向量搜索函数（移除用户ID过滤）
       const searchParams = {
         query_embedding: queryEmbeddingStr,
         query_text: query, // 添加原始搜索文本
@@ -93,7 +79,7 @@ export async function POST(request: NextRequest) {
         salary_max: salary.max,
         skills_filter: filters?.skills || [],
         status_filter: 'active',
-        user_id_param: user.id, // 使用新的参数名
+        user_id_param: user.id, // 添加用户ID参数
         fts_weight: 0.3,
         vector_weight: 0.7
       }
@@ -106,8 +92,7 @@ export async function POST(request: NextRequest) {
         salary_min: searchParams.salary_min,
         salary_max: searchParams.salary_max,
         skills_filter: searchParams.skills_filter,
-        status_filter: searchParams.status_filter,
-        user_id_param: searchParams.user_id_param
+        status_filter: searchParams.status_filter
       })
       
       const { data, error } = await supabase.rpc('search_candidates_rpc', searchParams)
@@ -161,7 +146,7 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({ success: true, data: results })
     } else {
-      // 使用简化的向量搜索函数
+      // 使用简化的向量搜索函数（移除用户ID过滤）
       const { data, error } = await supabase.rpc('search_jobs_rpc', {
         query_embedding: queryEmbeddingStr,
         query_text: query, // 添加原始搜索文本
@@ -174,7 +159,7 @@ export async function POST(request: NextRequest) {
         salary_max_filter: salary.max,
         skills_filter: filters?.skills || [],
         status_filter: 'active',
-        user_id_param: user.id, // 使用新的参数名
+        // 移除用户ID传递: user_id_param: user.id,
         fts_weight: 0.3,
         vector_weight: 0.7
       })

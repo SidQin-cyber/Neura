@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 function IconLogo({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
@@ -20,4 +21,22 @@ function IconLogo({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
-export { IconLogo }
+// 新的Logo组件，使用实际的logo.svg文件
+function Logo({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      className={cn('h-20 w-20 flex items-center justify-center', className)}
+      {...props}
+    >
+      <Image
+        src="/logo.svg"
+        alt="Neura Logo"
+        width={80}
+        height={80}
+        className="h-full w-full object-contain"
+      />
+    </div>
+  )
+}
+
+export { IconLogo, Logo }

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import Textarea from 'react-textarea-autosize'
+import { useLanguage } from '@/lib/context/language-context'
 
 interface SearchPanelProps {
   onSearch: (query: string, filters?: SearchFilters) => void
@@ -36,6 +37,7 @@ export function IntelligentSearchPanel({
   placeholder,
   suggestions = []
 }: SearchPanelProps) {
+  const { t } = useLanguage()
   const [query, setQuery] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState<SearchFilters>({})

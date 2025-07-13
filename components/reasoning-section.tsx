@@ -50,7 +50,7 @@ export function ReasoningSection({
     </div>
   )
 
-  if (!content) return <DefaultSkeleton />
+  if (!content) return <DefaultSkeleton variant="candidate" count={2} />
 
   return (
     <div className="flex flex-col gap-4">
@@ -61,7 +61,7 @@ export function ReasoningSection({
         isOpen={isOpen}
         onOpenChange={onOpenChange}
         showBorder={true}
-        showIcon={false}
+        showIcon={true}
       >
         <BotMessage
           message={content.reasoning}

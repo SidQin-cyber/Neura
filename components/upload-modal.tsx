@@ -11,6 +11,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Upload, FileText, Users, Briefcase } from 'lucide-react'
 import { toast } from 'sonner'
+import { useLanguage } from '@/lib/context/language-context'
 
 interface UploadModalProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ interface UploadModalProps {
 type UploadType = 'candidates' | 'jobs'
 
 export function UploadModal({ isOpen, onClose }: UploadModalProps) {
+  const { t } = useLanguage()
   const [uploadType, setUploadType] = useState<UploadType>('candidates')
   const [jsonContent, setJsonContent] = useState('')
   const [isUploading, setIsUploading] = useState(false)
@@ -153,7 +155,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="w-5 h-5" />
-            上传数据
+            {t('upload.title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -166,7 +168,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
               className="flex-1"
             >
               <Users className="w-4 h-4 mr-2" />
-              上传人选JSON
+              {t('upload.candidates')}
             </Button>
             <Button
               variant={uploadType === 'jobs' ? 'default' : 'outline'}
@@ -174,7 +176,7 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
               className="flex-1"
             >
               <Briefcase className="w-4 h-4 mr-2" />
-              上传职位JSON
+              {t('upload.jobs')}
             </Button>
           </div>
 
@@ -192,10 +194,10 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
           >
             <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium mb-2">
-              拖拽JSON文件到此处，或点击选择文件
+              {t('upload.dragText')}
             </p>
             <p className="text-sm text-muted-foreground">
-              支持.json格式文件（单个对象或数组）
+              {t('upload.supportText')}
             </p>
             <input
               ref={fileInputRef}
@@ -210,41 +212,13 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">
-                或直接粘贴JSON数据：
+                {t('upload.pasteText')}
               </label>
-              <div className="flex gap-2">
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0 text-xs"
-                  onClick={() => {
-                    const exampleUrl = uploadType === 'candidates' 
-                      ? '/examples/single-candidate-example.json'
-                      : '/examples/single-job-example.json'
-                    window.open(exampleUrl, '_blank')
-                  }}
-                >
-                  单个对象示例
-                </Button>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0 text-xs"
-                  onClick={() => {
-                    const exampleUrl = uploadType === 'candidates' 
-                      ? '/examples/candidates-example.json'
-                      : '/examples/jobs-example.json'
-                    window.open(exampleUrl, '_blank')
-                  }}
-                >
-                  数组格式示例
-                </Button>
-              </div>
             </div>
             <Textarea
               value={jsonContent}
               onChange={(e) => setJsonContent(e.target.value)}
-              placeholder={`请输入${uploadType === 'candidates' ? '人选' : '职位'}JSON数据（支持单个对象或数组）...`}
+              placeholder={t(uploadType === 'candidates' ? 'upload.placeholder.candidates' : 'upload.placeholder.jobs')}
               className="min-h-[200px] font-mono text-sm"
             />
           </div>
@@ -252,17 +226,17 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
           {/* 操作按钮 */}
           <div className="flex gap-2 pt-4 border-t">
             <Button variant="outline" onClick={handleClear} className="flex-1">
-              清空
+              {t('upload.clear')}
             </Button>
             <Button onClick={onClose} variant="outline" className="flex-1">
-              取消
+              {t('upload.cancel')}
             </Button>
             <Button 
               onClick={handleUpload} 
               disabled={isUploading || !jsonContent.trim()}
               className="flex-1"
             >
-              {isUploading ? '上传中...' : '确认上传'}
+              {isUploading ? t('common.loading') : t('upload.confirm')}
             </Button>
           </div>
         </div>

@@ -51,7 +51,7 @@ export function AnswerSection({
       )}
     </div>
   ) : (
-    <DefaultSkeleton />
+    <DefaultSkeleton variant="candidate" count={2} />
   )
   return (
     <CollapsibleMessage
@@ -60,7 +60,7 @@ export function AnswerSection({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       showBorder={false}
-      showIcon={false}
+      showIcon={true}
     >
       {message}
     </CollapsibleMessage>
