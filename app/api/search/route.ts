@@ -33,14 +33,18 @@ export async function POST(request: NextRequest) {
     // 先检查用户是否有数据
     const { data: userCheck, error: userCheckError } = await supabase
       .from('resumes')
-      .select('id, name, owner_id')
+      .select('id, name, owner_id, status, embedding')
       .eq('owner_id', user.id)
-      .limit(1)
     
     console.log('🔍 用户数据检查:')
     console.log('- 查询错误:', userCheckError)
     console.log('- 用户数据数量:', userCheck?.length || 0)
-    console.log('- 用户数据:', userCheck)
+    console.log('- 用户数据详情:', userCheck?.map(item => ({
+      id: item.id,
+      name: item.name,
+      status: item.status,
+      hasEmbedding: item.embedding !== null
+    })))
 
     // 1. 生成查询向量
     console.log('生成查询向量:', query)
@@ -58,6 +62,9 @@ export async function POST(request: NextRequest) {
     // 将查询向量转换为字符串格式，供RPC函数使用
     const queryEmbeddingStr = `[${queryEmbedding.join(',')}]`
     console.log('🔧 查询向量格式化完成，长度:', queryEmbeddingStr.length)
+    console.log('🔧 向量预览:', queryEmbeddingStr.substring(0, 100) + '...')
+    console.log('🔧 向量数组长度:', queryEmbedding.length)
+    console.log('🔧 向量前5个值:', queryEmbedding.slice(0, 5))
     
     // 2. 解析筛选条件
     const parseSalaryFilter = (salaryStr?: string) => {
@@ -73,19 +80,22 @@ export async function POST(request: NextRequest) {
     const experienceFilter = filters?.experience ? parseInt(filters.experience) : null
     
     if (mode === 'candidates') {
-      // 调用候选人搜索RPC函数
+      // 使用简化的向量搜索函数
       const searchParams = {
         query_embedding: queryEmbeddingStr,
-        similarity_threshold: 0.0, // 设为0.0以适应OpenAI中文embedding的低相似度特性
+        query_text: query, // 添加原始搜索文本
+        similarity_threshold: 0.10, // 降低阈值以获得更多结果
         match_count: 20,
         location_filter: filters?.location || null,
         experience_min: experienceFilter,
         experience_max: experienceFilter ? experienceFilter + 2 : null,
         salary_min: salary.min,
         salary_max: salary.max,
-        skills_filter: filters?.skills || null,
+        skills_filter: filters?.skills || [],
         status_filter: 'active',
-        user_id: user.id
+        user_id_param: user.id, // 使用新的参数名
+        fts_weight: 0.3,
+        vector_weight: 0.7
       }
       
       console.log('候选人搜索参数:', {
@@ -97,10 +107,16 @@ export async function POST(request: NextRequest) {
         salary_max: searchParams.salary_max,
         skills_filter: searchParams.skills_filter,
         status_filter: searchParams.status_filter,
-        user_id: searchParams.user_id
+        user_id_param: searchParams.user_id_param
       })
       
       const { data, error } = await supabase.rpc('search_candidates_rpc', searchParams)
+      
+      console.log('🔍 RPC调用结果:')
+      console.log('- 错误:', error)
+      console.log('- 数据:', data)
+      console.log('- 数据类型:', typeof data)
+      console.log('- 数据长度:', data?.length)
       
       if (error) {
         console.error('候选人搜索错误:', error)
@@ -130,6 +146,7 @@ export async function POST(request: NextRequest) {
         name: item.name,
         email: item.email,
         phone: item.phone,
+        title: item.current_title, // 添加title字段以兼容前端组件
         current_title: item.current_title,
         current_company: item.current_company,
         location: item.location,
@@ -137,24 +154,29 @@ export async function POST(request: NextRequest) {
         expected_salary_min: item.expected_salary_min,
         expected_salary_max: item.expected_salary_max,
         skills: item.skills || [],
-        file_url: item.file_url
+        file_url: item.file_url,
+        match_score: Math.round(item.similarity * 100), // 使用向量相似度分数
+        experience: item.years_of_experience ? `${item.years_of_experience}年经验` : null
       }))
       
       return NextResponse.json({ success: true, data: results })
     } else {
-      // 调用职位搜索RPC函数
+      // 使用简化的向量搜索函数
       const { data, error } = await supabase.rpc('search_jobs_rpc', {
         query_embedding: queryEmbeddingStr,
-        similarity_threshold: 0.0, // 设为0.0以适应OpenAI中文embedding的低相似度特性
+        query_text: query, // 添加原始搜索文本
+        similarity_threshold: 0.10, // 降低阈值，确保能看到结果
         match_count: 20,
         location_filter: filters?.location || null,
         experience_min: experienceFilter,
         experience_max: experienceFilter ? experienceFilter + 2 : null,
         salary_min_filter: salary.min,
         salary_max_filter: salary.max,
-        skills_filter: filters?.skills || null,
+        skills_filter: filters?.skills || [],
         status_filter: 'active',
-        user_id: user.id
+        user_id_param: user.id, // 使用新的参数名
+        fts_weight: 0.3,
+        vector_weight: 0.7
       })
       
       if (error) {
@@ -166,6 +188,14 @@ export async function POST(request: NextRequest) {
       }
       
       console.log('职位搜索结果:', data?.length || 0, '条')
+      if (data && data.length > 0) {
+        console.log('职位搜索结果详情:', data.map((item: any) => ({
+          title: item.title,
+          company: item.company,
+          location: item.location,
+          similarity: item.similarity
+        })))
+      }
       
       // 转换为前端需要的格式
       const results = (data || []).map((item: any) => ({
@@ -183,7 +213,8 @@ export async function POST(request: NextRequest) {
         currency: item.currency,
         description: item.description,
         skills_required: item.skills_required || [],
-        experience_required: item.experience_required
+        experience_required: item.experience_required,
+        match_score: Math.round(item.similarity * 100) // 使用向量相似度分数
       }))
       
       return NextResponse.json({ success: true, data: results })

@@ -73,42 +73,52 @@ serve(async (req) => {
     // 3. 使用OpenAI解析简历
     const parsedData = await parseResumeWithAI(fileText)
 
-    // 4. 生成向量嵌入
+    // 4. 生成向量嵌入 (只使用小模型)
     const embedding = await generateEmbedding(parsedData)
 
     // 5. 保存到数据库
-    const { data: resumeData, error: dbError } = await supabase
-      .from('resumes')
-      .insert({
-        owner_id: userId,
-        name: parsedData.name,
-        email: parsedData.email,
-        phone: parsedData.phone,
-        current_title: parsedData.current_title,
-        current_company: parsedData.current_company,
-        location: parsedData.location,
-        years_of_experience: parsedData.years_of_experience,
-        expected_salary_min: parsedData.expected_salary_min,
-        expected_salary_max: parsedData.expected_salary_max,
-        skills: parsedData.skills,
-        education: parsedData.education,
-        experience: parsedData.experience,
-        certifications: parsedData.certifications,
-        languages: parsedData.languages,
-        raw_data: parsedData,
-        file_url: `${supabaseUrl}/storage/v1/object/public/resumes-raw/${filePath}`,
-        file_name: filePath.split('/').pop(),
-        file_type: getFileType(filePath),
-        embedding: embedding,
-        status: 'active'
+    if (!embedding) {
+      throw new Error('Failed to generate embedding for resume.')
+    }
+
+    // 将embedding数组格式化为PostgreSQL VECTOR类型字符串
+    const embeddingStr = `[${embedding.join(',')}]`
+    
+    console.log('🔧 处理候选人数据:', {
+      name: parsedData.name,
+      embeddingType: typeof embedding,
+      embeddingIsArray: Array.isArray(embedding),
+      embeddingLength: Array.isArray(embedding) ? embedding.length : 0,
+      embeddingStrLength: embeddingStr.length
+    })
+
+    // 使用RPC函数插入数据，确保embedding以正确的VECTOR格式存储
+    const { data: newCandidateId, error: dbError } = await supabase
+      .rpc('insert_candidate_with_embedding', {
+        p_owner_id: userId,
+        p_name: parsedData.name,
+        p_email: parsedData.email,
+        p_phone: parsedData.phone,
+        p_current_title: parsedData.current_title,
+        p_current_company: parsedData.current_company,
+        p_location: parsedData.location,
+        p_years_of_experience: parsedData.years_of_experience,
+        p_expected_salary_min: parsedData.expected_salary_min,
+        p_expected_salary_max: parsedData.expected_salary_max,
+        p_skills: parsedData.skills,
+        p_education: parsedData.education ? (typeof parsedData.education === 'string' ? { value: parsedData.education } : parsedData.education) : null,
+        p_experience: parsedData.experience ? (typeof parsedData.experience === 'string' ? { value: parsedData.experience } : parsedData.experience) : null,
+        p_certifications: parsedData.certifications ? (typeof parsedData.certifications === 'string' ? { value: parsedData.certifications } : parsedData.certifications) : null,
+        p_languages: parsedData.languages ? (typeof parsedData.languages === 'string' ? { value: parsedData.languages } : parsedData.languages) : null,
+        p_raw_data: parsedData,
+        p_status: 'active',
+        p_embedding: embeddingStr
       })
-      .select()
-      .single()
 
     if (dbError) {
-      console.error('Database error:', dbError)
+      console.error('❌ RPC插入失败:', dbError)
       return new Response(
-        JSON.stringify({ error: 'Failed to save resume data' }),
+        JSON.stringify({ error: 'Failed to save resume data via RPC' }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -116,11 +126,59 @@ serve(async (req) => {
       )
     }
 
+    console.log('✅ 候选人数据插入成功，ID:', newCandidateId)
+
+    // 获取完整的候选人数据
+    const { data: resumeData, error: selectError } = await supabase
+      .from('resumes')
+      .select('*')
+      .eq('id', newCandidateId)
+      .single()
+
+    if (selectError) {
+      console.error('❌ 获取新插入的候选人数据失败:', selectError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to retrieve newly inserted resume data' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // 更新文件相关字段
+    const fileUrl = `${supabaseUrl}/storage/v1/object/public/resumes-raw/${filePath}`
+    const fileName = filePath.split('/').pop()
+    const fileType = getFileType(filePath)
+
+    const { data: updatedResumeData, error: updateError } = await supabase
+      .from('resumes')
+      .update({
+        file_url: fileUrl,
+        file_name: fileName,
+        file_type: fileType
+      })
+      .eq('id', newCandidateId)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.warn('⚠️ 更新文件信息失败:', updateError)
+      // 不视为致命错误，继续处理
+    }
+
+    // 返回最终的候选人数据
+    const finalResumeData = updatedResumeData || resumeData
+
     return new Response(
       JSON.stringify({
         success: true,
-        resume: resumeData,
-        message: 'Resume processed successfully'
+        resume: finalResumeData,
+        message: 'Resume processed successfully with single embedding model',
+        embedding_info: {
+          model: 'text-embedding-3-small',
+          dimensions: embedding.length
+        }
       }),
       {
         status: 200,
@@ -232,7 +290,7 @@ async function generateEmbedding(parsedData) {
     parsedData.current_title,
     parsedData.current_company,
     parsedData.location,
-    ...parsedData.skills,
+    ...(parsedData.skills || []),
     parsedData.experience
       ?.map((exp) => `${exp.title} at ${exp.company}: ${exp.description}`)
       .join(' '),
@@ -245,6 +303,8 @@ async function generateEmbedding(parsedData) {
   ]
     .filter(Boolean)
     .join(' ')
+
+  console.log('🔧 生成embedding的文本:', textToEmbed.substring(0, 200) + '...')
 
   const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
@@ -265,6 +325,7 @@ async function generateEmbedding(parsedData) {
     throw new Error(`OpenAI API error: ${result.error?.message}`)
   }
 
+  console.log('✅ Embedding生成成功，维度:', result.data[0].embedding.length)
   return result.data[0].embedding
 }
 

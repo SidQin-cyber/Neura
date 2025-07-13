@@ -29,9 +29,17 @@ export function CandidateCard({
   }
 
   const getSimilarityColor = (similarity: number) => {
-    if (similarity >= 0.8) return 'bg-green-100 text-green-800'
-    if (similarity >= 0.6) return 'bg-yellow-100 text-yellow-800'
-    return 'bg-red-100 text-red-800'
+    if (similarity >= 80) return 'bg-green-500 text-white'
+    if (similarity >= 60) return 'bg-yellow-500 text-white'
+    if (similarity >= 40) return 'bg-orange-500 text-white'
+    return 'bg-red-500 text-white'
+  }
+  
+  const getMatchLabel = (score: number) => {
+    if (score >= 80) return '高匹配'
+    if (score >= 60) return '中匹配'
+    if (score >= 40) return '低匹配'
+    return '不匹配'
   }
 
   if (simplified) {
@@ -44,7 +52,7 @@ export function CandidateCard({
               <p className="text-[#666] text-sm font-medium mt-1 truncate">{candidate.title}</p>
             )}
           </div>
-          <Badge className="bg-green-500 text-white px-3 py-1 text-sm font-medium flex-shrink-0 flex items-center gap-1 self-start sm:self-auto">
+          <Badge className={`${getSimilarityColor(candidate.match_score || 0)} px-3 py-1 text-sm font-medium flex-shrink-0 flex items-center gap-1 self-start sm:self-auto`}>
             <TrendingUp className="h-3 w-3" />
             {candidate.match_score || 0}%
           </Badge>
@@ -118,8 +126,8 @@ export function CandidateCard({
                 )}
               </div>
             </div>
-            <Badge className={getSimilarityColor(candidate.match_score ? candidate.match_score / 100 : 0)}>
-              匹配度 {candidate.match_score || 0}%
+            <Badge className={getSimilarityColor(candidate.match_score || 0)}>
+              {getMatchLabel(candidate.match_score || 0)} {candidate.match_score || 0}%
             </Badge>
           </div>
           
