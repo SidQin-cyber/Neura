@@ -55,7 +55,7 @@ export const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({
         isCollapsible={false}
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        showIcon={false}
+        showIcon={true}
       >
         <Skeleton className="w-full h-6" />
       </CollapsibleMessage>
@@ -68,7 +68,7 @@ export const RelatedQuestions: React.FC<RelatedQuestionsProps> = ({
       isCollapsible={false}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      showIcon={false}
+      showIcon={true}
       showBorder={false}
     >
       <Section title="Related" className="pt-0 pb-4">

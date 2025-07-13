@@ -52,14 +52,14 @@ export function VideoSearchSection({
       header={header}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      showIcon={false}
+      showIcon={true}
     >
       {!isLoading && videoResults ? (
         <Section title="Videos">
           <VideoSearchResults results={videoResults} />
         </Section>
       ) : (
-        <DefaultSkeleton />
+        <DefaultSkeleton variant="candidate" count={2} />
       )}
     </CollapsibleMessage>
   )

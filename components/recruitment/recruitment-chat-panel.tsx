@@ -143,7 +143,17 @@ export function RecruitmentChatPanel({
           </Button>
         )}
 
-        <form onSubmit={handleSubmit} className="w-full">
+        <form onSubmit={handleSubmit} className="w-full relative">
+          {/* Top edge blur fade effect - similar to Gemini */}
+          {messages.length > 0 && (
+            <div 
+              className="absolute -top-8 left-0 right-0 h-8 pointer-events-none z-10"
+              style={{
+                background: 'linear-gradient(to top, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%)'
+              }}
+            />
+          )}
+
           <div className="relative flex flex-col w-full gap-3 bg-background rounded-3xl border border-input shadow-lg">
             <Textarea
               ref={inputRef}

@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Briefcase, Users } from 'lucide-react'
+import { useLanguage } from '@/lib/context/language-context'
 
 interface SearchSuggestion {
   heading: string
@@ -68,6 +69,7 @@ export function RecruitmentEmptyScreen({
   onSearchTypeChange,
   className
 }: RecruitmentEmptyScreenProps) {
+  const { t } = useLanguage()
   const suggestions = searchType === 'candidate' ? candidateSuggestions : jobSuggestions
   const oppositeType = searchType === 'candidate' ? 'job' : 'candidate'
   
@@ -77,7 +79,7 @@ export function RecruitmentEmptyScreen({
         {/* 搜索类型切换提示 */}
         <div className="mb-4 text-center">
           <p className="text-sm text-muted-foreground mb-2">
-            当前搜索模式: {searchType === 'candidate' ? '候选人' : '职位'}
+            {t('mode.currentMode')}: {searchType === 'candidate' ? t('mode.candidates') : t('mode.jobs')}
           </p>
           <Button
             variant="outline"

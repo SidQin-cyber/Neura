@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { RenderMessage } from './render-message'
 import { ToolSection } from './tool-section'
 import { Spinner } from './ui/spinner'
+import { DefaultSkeleton, MessageSkeleton } from './default-skeleton'
+import { useSearch } from '@/lib/context/search-context'
 
 // Import section structure interface
 interface ChatSection {
@@ -43,6 +45,7 @@ export function ChatMessages({
 }: ChatMessagesProps) {
   const [openStates, setOpenStates] = useState<Record<string, boolean>>({})
   const manualToolCallId = 'manual-tool-call'
+  const { searchMode, isLoading: searchLoading } = useSearch()
 
   useEffect(() => {
     // Open manual tool call when the last section is a user message
@@ -108,8 +111,10 @@ export function ChatMessages({
     [...allMessages].reverse().findIndex(msg => msg.role === 'user')
 
   // Check if loading indicator should be shown
+  // 统一两个加载状态：AI对话的isLoading 和 搜索的searchLoading
+  const combinedLoading = isLoading || searchLoading
   const showLoading =
-    isLoading &&
+    combinedLoading &&
     sections.length > 0 &&
     sections[sections.length - 1].assistantMessages.length === 0
 
@@ -165,7 +170,6 @@ export function ChatMessages({
                 onUpdateMessage={onUpdateMessage}
                 reload={reload}
               />
-              {showLoading && <Spinner />}
             </div>
 
             {/* Assistant messages */}
@@ -184,6 +188,19 @@ export function ChatMessages({
                 />
               </div>
             ))}
+            
+            {/* 骨架屏 - 作为独立的"待加载助手消息"渲染 */}
+            {showLoading && sectionIndex === sections.length - 1 && (
+              <div className="flex flex-col gap-4 mt-6">
+                {/* 先显示消息骨架屏 */}
+                <MessageSkeleton />
+                {/* 然后显示卡片骨架屏 */}
+                <DefaultSkeleton 
+                  variant={searchMode === 'candidates' ? 'candidate' : 'job'}
+                  count={3}
+                />
+              </div>
+            )}
           </div>
         ))}
 

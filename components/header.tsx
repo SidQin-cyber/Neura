@@ -16,7 +16,8 @@ export const Header: React.FC<HeaderProps> = ({ user }) => {
       <div></div>
 
       <div className="flex items-center gap-2">
-        {user ? <UserMenu user={user} /> : <GuestMenu />}
+        {/* 移除了用户菜单，个人设定按钮现在在左下角sidebar中 */}
+        {!user && <GuestMenu />}
       </div>
     </header>
   )

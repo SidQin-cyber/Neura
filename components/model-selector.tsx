@@ -3,6 +3,7 @@
 import { getCookie, setCookie } from '@/lib/utils/cookies'
 import { Check, ChevronsUpDown, Users, Briefcase } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useLanguage } from '@/lib/context/language-context'
 import { Button } from './ui/button'
 import {
   Command,
@@ -22,21 +23,6 @@ interface SearchModeOption {
   icon: React.ComponentType<{ className?: string }>
 }
 
-const searchModes: SearchModeOption[] = [
-  {
-    id: 'candidates',
-    label: '寻找候选人',
-    description: '',
-    icon: Users
-  },
-  {
-    id: 'jobs',
-    label: '寻找岗位',
-    description: '',
-    icon: Briefcase
-  }
-]
-
 interface ModeSwitcherProps {
   onModeChange?: (mode: SearchMode) => void
 }
@@ -44,6 +30,22 @@ interface ModeSwitcherProps {
 export function ModeSwitcher({ onModeChange }: ModeSwitcherProps) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<SearchMode>('candidates')
+  const { t } = useLanguage()
+
+  const searchModes: SearchModeOption[] = [
+    {
+      id: 'candidates',
+      label: t('mode.candidates'),
+      description: '',
+      icon: Users
+    },
+    {
+      id: 'jobs',
+      label: t('mode.jobs'),
+      description: '',
+      icon: Briefcase
+    }
+  ]
 
   useEffect(() => {
     const savedMode = getCookie('searchMode') as SearchMode
@@ -69,11 +71,11 @@ export function ModeSwitcher({ onModeChange }: ModeSwitcherProps) {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="h-auto px-3 py-2 bg-transparent border-none rounded-full text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 active:bg-gray-200/80 focus:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-gray-300/50 shadow-none"
+          className="h-auto px-3 py-2 bg-transparent border-none rounded-full text-base font-medium transition-all duration-200 hover:bg-gray-100/80 active:bg-gray-200/80 focus:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-gray-300/50 shadow-none"
         >
           <div className="flex items-center space-x-2">
             <CurrentIcon className="h-4 w-4" />
-            <span className="text-xs font-medium">
+            <span className="text-sm font-medium">
               {currentMode?.label || '寻找候选人'}
             </span>
           </div>
@@ -84,7 +86,7 @@ export function ModeSwitcher({ onModeChange }: ModeSwitcherProps) {
         <Command className="rounded-2xl">
           <CommandList>
             <CommandEmpty>No mode found.</CommandEmpty>
-            <CommandGroup heading="搜索模式" className="p-2">
+            <CommandGroup heading={t('mode.searchMode')} className="p-2">
               {searchModes.map(modeOption => {
                 const Icon = modeOption.icon
                   return (

@@ -4,6 +4,7 @@ import { SimpleSidebar } from '@/components/simple-sidebar'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { createClient } from '@/lib/supabase/server'
+import { LanguageProvider } from '@/lib/context/language-context'
 import { cn } from '@/lib/utils'
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
@@ -73,6 +74,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <LanguageProvider>
           {user ? (
             // Authenticated layout - show sidebar and header
             <div className="flex min-h-screen">
@@ -92,6 +94,7 @@ export default async function RootLayout({
           )}
           <Toaster />
           <Analytics />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

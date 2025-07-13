@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { getCookie, setCookie } from '@/lib/utils/cookies'
 import { Filter, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useLanguage } from '@/lib/context/language-context'
 
 interface SearchFilterToggleProps {
   searchType: 'candidate' | 'job'
@@ -25,6 +26,7 @@ export function SearchFilterToggle({
   filters,
   onFiltersChange
 }: SearchFilterToggleProps) {
+  const { t } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [localFilters, setLocalFilters] = useState<SearchFilters>(filters)
@@ -36,11 +38,12 @@ export function SearchFilterToggle({
     }
   }, [])
 
-  const handleFilterToggle = (pressed: boolean) => {
-    setShowFilters(pressed)
-    setCookie('recruitment-filters-enabled', pressed.toString())
+  const handleFilterToggle = () => {
+    const newPressed = !showFilters
+    setShowFilters(newPressed)
+    setCookie('recruitment-filters-enabled', newPressed.toString())
     
-    if (!pressed) {
+    if (!newPressed) {
       // 清空筛选条件
       const emptyFilters: SearchFilters = {}
       setLocalFilters(emptyFilters)
@@ -79,46 +82,27 @@ export function SearchFilterToggle({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <div className="flex items-center gap-1">
-          <Toggle
-            aria-label="Toggle advanced filters"
-            pressed={showFilters}
-            onPressedChange={handleFilterToggle}
+        <Button
             variant="outline"
-            className={cn(
-              'gap-1 px-3 border border-input text-muted-foreground bg-background',
-              'data-[state=on]:bg-accent-blue',
-              'data-[state=on]:text-accent-blue-foreground',
-              'data-[state=on]:border-accent-blue-border',
-              'hover:bg-accent hover:text-accent-foreground rounded-full'
-            )}
+          size="sm"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          onClick={handleFilterToggle}
           >
-            <Filter className="size-4" />
-            <span className="text-xs">筛选</span>
+          <Filter className="h-4 w-4" />
+          {t('filter.advanced')}
             {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0.5">
+            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                 {activeFiltersCount}
               </Badge>
             )}
-          </Toggle>
-          {showFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-1 h-8 w-8 rounded-full"
-            >
-              <Filter className="size-3" />
             </Button>
-          )}
-        </div>
       </PopoverTrigger>
       
       {showFilters && (
         <PopoverContent className="w-80" align="start">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium">高级筛选</h4>
+              <h4 className="font-medium">{t('filter.advanced')}</h4>
               {activeFiltersCount > 0 && (
                 <Button
                   variant="ghost"

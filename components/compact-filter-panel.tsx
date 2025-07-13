@@ -14,6 +14,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Filter } from 'lucide-react'
 import { useState } from 'react'
+import { useLanguage } from '@/lib/context/language-context'
 
 export interface FilterState {
   location: string
@@ -29,21 +30,22 @@ interface CompactFilterPanelProps {
   searchMode?: 'candidates' | 'jobs'
 }
 
-const educationOptions = [
-  { value: 'none', label: '不限' },
-  { value: 'college', label: '大专' },
-  { value: 'bachelor', label: '本科' },
-  { value: 'master', label: '硕士' },
-  { value: 'phd', label: '博士' }
-]
-
 export function CompactFilterPanel({ 
   filters, 
   onFiltersChange, 
   searchMode = 'candidates' 
 }: CompactFilterPanelProps) {
+  const { t } = useLanguage()
   const [open, setOpen] = useState(false)
   const [localFilters, setLocalFilters] = useState<FilterState>(filters)
+
+  const educationOptions = [
+    { value: 'none', label: t('filter.education.unlimited') },
+    { value: 'college', label: t('filter.education.junior') },
+    { value: 'bachelor', label: t('filter.education.bachelor') },
+    { value: 'master', label: t('filter.education.master') },
+    { value: 'phd', label: t('filter.education.doctor') }
+  ]
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setLocalFilters(prev => ({
@@ -71,8 +73,8 @@ export function CompactFilterPanel({
 
   const getSalaryLabel = () => {
     return searchMode === 'candidates' 
-      ? '薪酬预期 (月薪, K)' 
-      : '薪资范围 (月薪, K)'
+      ? t('filter.salary.expected') 
+      : t('filter.salary.offered')
   }
 
   const getSpecialReqPlaceholder = () => {
@@ -87,10 +89,10 @@ export function CompactFilterPanel({
         <Button 
           variant="ghost" 
           size="sm" 
-          className="h-auto px-3 py-2 bg-transparent border-none rounded-full text-xs font-medium transition-all duration-200 hover:bg-gray-100/80 active:bg-gray-200/80 focus:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-gray-300/50 shadow-none gap-2"
+          className="h-auto px-3 py-2 bg-transparent border-none rounded-full text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 active:bg-gray-200/80 focus:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-gray-300/50 shadow-none gap-2"
         >
           <Filter className="h-4 w-4" />
-          高级筛选
+          {t('filter.advanced')}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="start">
@@ -99,7 +101,7 @@ export function CompactFilterPanel({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="location" className="text-xs font-medium text-gray-600">
-                地点
+                {t('filter.location')}
               </Label>
               <Input
                 id="location"
@@ -110,14 +112,14 @@ export function CompactFilterPanel({
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-gray-600">
-                学历
+                {t('filter.education')}
               </Label>
               <Select
                 value={localFilters.education}
                 onValueChange={(value) => handleFilterChange('education', value)}
               >
                 <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="不限" />
+                  <SelectValue placeholder={t('filter.education.unlimited')} />
                 </SelectTrigger>
                 <SelectContent>
                   {educationOptions.map((option) => (
@@ -160,14 +162,14 @@ export function CompactFilterPanel({
               onClick={handleReset}
               className="flex-1 h-8 text-xs"
             >
-              重置
+              {t('filter.reset')}
             </Button>
             <Button 
               size="sm" 
               onClick={handleApply}
               className="flex-1 h-8 text-xs"
             >
-              应用筛选
+              {t('filter.apply')}
             </Button>
           </div>
         </div>

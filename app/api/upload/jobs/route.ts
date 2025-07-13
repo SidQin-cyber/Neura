@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         title: item.title,
         company: item.company,
         location: item.location || null,
-        employment_type: item.employment_type || item.type || 'full_time',
+        employment_type: item.employment_type || item.type || 'full-time',
         salary_min: item.salary_min || null,
         salary_max: item.salary_max || null,
         currency: item.currency || 'CNY',
@@ -93,36 +93,39 @@ export async function POST(request: NextRequest) {
     console.log('📊 准备通过RPC函数插入数据，记录数:', jobData.length)
 
     const insertPromises = jobData.map(async (item) => {
-      // 关键：将embedding数组格式化为PostgreSQL VECTOR类型字符串
-      const embeddingStr = `[${item.embedding.join(',')}]`
-      
+      // 🔧 处理职位数据并插入
       console.log(`🔧 处理职位 ${item.title}:`, {
         embeddingType: typeof item.embedding,
         embeddingIsArray: Array.isArray(item.embedding),
-        embeddingLength: Array.isArray(item.embedding) ? item.embedding.length : 0,
-        embeddingStrLength: embeddingStr.length
+        embeddingLength: item.embedding?.length,
+        embeddingStrLength: JSON.stringify(item.embedding).length
       })
       
-      const { data, error } = await supabase.rpc('insert_job_with_embedding', {
-        p_owner_id: item.owner_id,
-        p_title: item.title,
-        p_company: item.company,
-        p_location: item.location,
-        p_employment_type: item.employment_type,
-        p_salary_min: item.salary_min,
-        p_salary_max: item.salary_max,
-        p_currency: item.currency,
-        p_description: item.description,
-        p_requirements: item.requirements,
-        p_benefits: item.benefits,
-        p_skills_required: item.skills_required,
-        p_experience_required: item.experience_required,
-        p_education_required: item.education_required,
-        p_industry: item.industry,
-        p_department: item.department,
-        p_status: item.status,
-        p_embedding: embeddingStr
-      })
+      // ✅ 使用直接插入替代 RPC 函数调用
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert({
+          owner_id: item.owner_id,
+          title: item.title,
+          company: item.company,
+          location: item.location || null,
+          employment_type: item.employment_type || 'full-time',
+          salary_min: item.salary_min || null,
+          salary_max: item.salary_max || null,
+          currency: item.currency || 'CNY',
+          description: item.description || null,
+          requirements: item.requirements || null,
+          benefits: item.benefits || null,
+          skills_required: item.skills_required || [],
+          experience_required: item.experience_required || null,
+          education_required: item.education_required || null,
+          industry: item.industry || null,
+          department: item.department || null,
+          status: item.status || 'active',
+          embedding: `[${item.embedding.join(',')}]`
+        })
+        .select('id, title')
+        .single()
       
       if (error) {
         console.error(`❌ 插入 ${item.title} 失败:`, error)

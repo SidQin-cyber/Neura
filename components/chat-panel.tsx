@@ -15,6 +15,7 @@ import { Button } from './ui/button'
 import { IconLogo } from './ui/icons'
 import { useSearch } from '@/lib/context/search-context'
 import { universalSearch } from '@/lib/api/search'
+import { useLanguage } from '@/lib/context/language-context'
 
 // 生成唯一ID的函数
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -58,6 +59,7 @@ export function ChatPanel({
   const [enterDisabled, setEnterDisabled] = useState(false) // Disable Enter after composition ends
   const { close: closeArtifact } = useArtifact()
   const { searchMode, setSearchMode, filters, setFilters, setIsLoading } = useSearch()
+  const { t } = useLanguage()
 
   const handleCompositionStart = () => setIsComposing(true)
 
@@ -183,9 +185,9 @@ export function ChatPanel({
   const getPlaceholder = () => {
     switch (searchMode) {
       case 'candidates':
-        return '描述您的职位要求，例如：5年Java开发经验，熟悉Spring框架，在北京...'
+        return t('chat.placeholder.candidates')
       case 'jobs':
-        return '描述您的个人能力，例如：3年前端开发，熟悉React、TypeScript，期望薪资...'
+        return t('chat.placeholder.jobs')
       default:
         return 'Ask a question...'
     }
@@ -194,8 +196,8 @@ export function ChatPanel({
   return (
     <div
       className={cn(
-        'w-full bg-background group/form-container shrink-0',
-        messages.length > 0 ? 'sticky bottom-0 px-2 pb-4' : 'px-6 pb-16'
+        'w-full group/form-container shrink-0',
+        messages.length > 0 ? 'sticky bottom-0 px-2 pb-12' : 'px-6 pb-12'
       )}
     >
       {messages.length === 0 && (
@@ -214,6 +216,16 @@ export function ChatPanel({
         onSubmit={handleSearchSubmit}
         className={cn('max-w-3xl w-full mx-auto relative')}
       >
+        {/* Top edge blur fade effect - similar to Gemini */}
+        {messages.length > 0 && (
+          <div 
+            className="absolute -top-8 left-0 right-0 h-8 pointer-events-none z-10"
+            style={{
+              background: 'linear-gradient(to top, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%)'
+            }}
+          />
+        )}
+
         {/* Scroll to bottom button - only shown when showScrollToBottomButton is true */}
         {showScrollToBottomButton && messages.length > 0 && (
           <Button
@@ -228,7 +240,7 @@ export function ChatPanel({
           </Button>
         )}
 
-        <div className="relative flex flex-col w-full gap-2 bg-white rounded-3xl border border-gray-200">
+        <div className="relative flex flex-col w-full gap-2 bg-white rounded-3xl border border-gray-200 overflow-hidden">
           <Textarea
             ref={inputRef}
             name="input"
@@ -241,7 +253,7 @@ export function ChatPanel({
             spellCheck={false}
             value={input}
             disabled={isLoading || isToolInvocationInProgress()}
-            className="resize-none w-full min-h-12 bg-transparent border-0 px-4 pt-5 pb-3 text-sm placeholder:text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="resize-none w-full min-h-12 bg-transparent border-0 px-4 pt-5 pb-3 text-base placeholder:text-base placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             onChange={e => {
               handleInputChange(e)
             }}
@@ -278,7 +290,11 @@ export function ChatPanel({
                 type={isLoading ? 'button' : 'submit'}
                 size={'icon'}
                 variant={'outline'}
-                className={cn(isLoading && 'animate-pulse', 'rounded-full')}
+                className={cn(
+                  isLoading && 'animate-pulse',
+                  'rounded-full',
+                  input.trim().length > 0 && !isLoading ? 'bg-gray-700 text-white border-gray-700 hover:bg-gray-600' : ''
+                )}
                 disabled={
                   (input.length === 0 && !isLoading) ||
                   isToolInvocationInProgress()

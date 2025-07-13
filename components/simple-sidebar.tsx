@@ -1,9 +1,9 @@
 'use client'
 
-import { IconLogo } from '@/components/ui/icons'
+import { IconLogo, Logo } from '@/components/ui/icons'
 import { MessageSquare, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Tooltip,
   TooltipContent,
@@ -11,10 +11,40 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { UploadModal } from '@/components/upload-modal'
+import { createClient } from '@/lib/supabase/client'
+import { User } from '@supabase/supabase-js'
+import UserMenu from '@/components/user-menu'
+import { useLanguage } from '@/lib/context/language-context'
 
 export function SimpleSidebar() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+
+  // 获取用户信息
+  useEffect(() => {
+    const supabase = createClient()
+    
+    // 获取当前用户
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    
+    // 监听认证状态变化
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null)
+      }
+    )
+    
+    getUser()
+    
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
 
   const handleNewChat = () => {
     // 触发新建对话事件
@@ -26,16 +56,17 @@ export function SimpleSidebar() {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="w-12 h-screen bg-background border-r-[0.5px] border-border/40 flex flex-col items-center py-3 fixed left-0 top-0 z-50">
-        {/* Logo */}
-        <button 
-          onClick={handleNewChat}
-          className="flex items-center justify-center w-10 h-10 hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors group"
-        >
-          <IconLogo className="w-6 h-6 group-hover:scale-110 transition-transform" />
-        </button>
-        
-        {/* 新建对话按钮 */}
-        <div className="flex flex-col items-center gap-2 mt-4">
+        {/* 顶部按钮区域 */}
+        <div className="flex flex-col items-center gap-2">
+          {/* Logo */}
+          <button 
+            onClick={handleNewChat}
+            className="flex items-center justify-center w-12 h-12 hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors group"
+          >
+            <Logo className="!w-11 !h-11 group-hover:scale-110 transition-transform" />
+          </button>
+          
+          {/* 新建对话按钮 */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button 
@@ -50,13 +81,11 @@ export function SimpleSidebar() {
               sideOffset={12}
               className="bg-gray-900 text-white px-2.5 py-1.5 rounded-md text-xs font-medium shadow-lg"
             >
-              New chat
+              {t('nav.newChat')}
             </TooltipContent>
           </Tooltip>
-        </div>
 
-        {/* 上传按钮 */}
-        <div className="flex flex-col items-center gap-2 mt-2">
+          {/* 上传按钮 */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button 
@@ -71,10 +100,20 @@ export function SimpleSidebar() {
               sideOffset={12}
               className="bg-gray-900 text-white px-2.5 py-1.5 rounded-md text-xs font-medium shadow-lg"
             >
-              上传
+              {t('nav.upload')}
             </TooltipContent>
           </Tooltip>
         </div>
+
+        {/* 占位符，使用flex-1让用户菜单在底部 */}
+        <div className="flex-1"></div>
+
+        {/* 底部用户菜单 - 调整位置与ChatPanel的底部按钮对齐 */}
+        {user && (
+          <div className="flex flex-col items-center pb-7">
+            <UserMenu user={user} variant="sidebar" />
+          </div>
+        )}
       </div>
 
       {/* 上传模态框 */}

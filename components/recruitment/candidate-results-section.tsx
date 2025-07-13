@@ -3,6 +3,8 @@
 import { CandidateCard } from './candidate-card'
 import { CollapsibleMessage } from '@/components/collapsible-message'
 import { CandidateSearchResult } from '@/lib/context/search-context'
+import { MessageSkeleton } from '@/components/default-skeleton'
+import { useLanguage } from '@/lib/context/language-context'
 
 interface CandidateResultsSectionProps {
   candidates: CandidateSearchResult[]
@@ -10,6 +12,7 @@ interface CandidateResultsSectionProps {
   onOpenChange: (open: boolean) => void
   query?: string
   totalCount?: number
+  isLoading?: boolean
 }
 
 export function CandidateResultsSection({
@@ -17,14 +20,21 @@ export function CandidateResultsSection({
   isOpen,
   onOpenChange,
   query,
-  totalCount
+  totalCount,
+  isLoading = false
 }: CandidateResultsSectionProps) {
+  const { t } = useLanguage()
+  
+  // 如果正在加载，显示消息骨架屏
+  if (isLoading) {
+    return <MessageSkeleton />
+  }
   
   const resultsContent = (
     <div className="space-y-4">
       {/* 简单的结果统计 */}
       <div className="text-sm text-muted-foreground mb-6">
-        找到 {candidates.length} 位候选人
+        {t('search.found.candidates', { count: candidates.length })}
         {query && (
                   <span className="ml-2">
           搜索：&ldquo;{query}&rdquo;
@@ -45,7 +55,7 @@ export function CandidateResultsSection({
         </div>
       ) : (
         <div className="text-sm text-muted-foreground py-4">
-          未找到匹配的候选人，尝试调整搜索条件。
+          {t('search.noResults.candidates')}
         </div>
       )}
     </div>

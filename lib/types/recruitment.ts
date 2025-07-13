@@ -44,13 +44,7 @@ export interface Job {
   title: string
   company: string
   location: string | null
-  employment_type:
-    | 'full_time'
-    | 'part_time'
-    | 'contract'
-    | 'internship'
-    | 'remote'
-    | null
+  employment_type: JobEmploymentType | null
   salary_min: number | null
   salary_max: number | null
   currency: string
@@ -409,4 +403,11 @@ export interface PaginatedResponse<T> {
     has_prev: boolean
   }
 }
+ 
+export type JobEmploymentType = 
+  | 'full-time'
+  | 'part-time'
+  | 'contract'
+  | 'internship'
+  | 'remote'
  
