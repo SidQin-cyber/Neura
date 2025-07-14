@@ -68,10 +68,11 @@ export function RecruitmentChatPanel({
 
   const handleCompositionEnd = () => {
     setIsComposing(false)
+    // 使用更短的延迟时间，只是为了避免输入法结束时的意外触发
     setEnterDisabled(true)
     setTimeout(() => {
       setEnterDisabled(false)
-    }, 300)
+    }, 50) // 进一步减少到50ms，几乎不影响用户体验
   }
 
   const handleNewSearch = () => {
