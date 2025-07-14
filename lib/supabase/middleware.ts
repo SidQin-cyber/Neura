@@ -43,7 +43,8 @@ export async function updateSession(request: NextRequest) {
   const publicPaths = [
     '/login', // Login page
     '/register', // Register page
-    '/api/auth' // Auth API routes
+    '/api/auth', // Auth API routes
+    '/api/debug' // Debug API routes
   ]
 
   const pathname = request.nextUrl.pathname
