@@ -124,25 +124,20 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen bg-white">
-      {/* 左侧登录表单 */}
-      <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+      {/* 左侧登录表单 - 微微加宽 */}
+      <div className="flex flex-col justify-start px-4 pt-12 pb-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24" style={{ flexBasis: '42%' }}>
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-8">
-              <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">N</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-900">Neura</span>
+            <div className="flex items-center justify-center mb-[-60px]">
+              <img 
+                src="/providers/logos/logo1.svg" 
+                alt="Neura Logo" 
+                className="w-96 h-96"
+              />
             </div>
-            <h2 className="text-2xl/9 font-bold tracking-tight text-gray-900">
-              登录到您的账户
-            </h2>
-            <p className="mt-2 text-sm/6 text-gray-500">
-              AI驱动的智能招聘平台
-            </p>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-0 pt-0">
             <form onSubmit={handleLogin} className="space-y-6" autoComplete={rememberMe ? "on" : "off"}>
               <div>
                 <Label htmlFor="username" className="block text-sm/6 font-medium text-gray-900">
@@ -159,7 +154,7 @@ export default function LoginPage() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     disabled={isLoading}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
                     placeholder="请输入您的用户名"
                   />
                 </div>
@@ -180,7 +175,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
                     placeholder="请输入您的密码"
                   />
                 </div>
@@ -194,7 +189,7 @@ export default function LoginPage() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => handleRememberMeChange(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    className="h-4 w-4 rounded-md border-gray-300 text-indigo-600 focus:ring-indigo-600 transition-all duration-200"
                   />
                   <Label htmlFor="remember-me" className="ml-3 block text-sm text-gray-900">
                     记住我
@@ -215,7 +210,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="flex w-full justify-center rounded-lg bg-[#8a5cf6] px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-[#7c3aed] hover:shadow-lg hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8a5cf6] transition-all duration-200 ease-out"
                 >
                   {isLoading ? '登录中...' : '登录'}
                 </Button>
@@ -227,19 +222,18 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* 右侧品牌展示 - 铺满整个高度 */}
-      <div className="relative hidden w-0 flex-1 lg:block">
+      {/* 右侧品牌展示 - 增强遮罩效果 */}
+      <div className="relative hidden lg:block" style={{ flexBasis: '58%' }}>
         <div className="absolute inset-0">
           <img
             alt="Neura AI招聘平台"
-            src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1926&q=80"
+            src="/background.png"
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           <div className="absolute bottom-10 left-10 right-10 text-white">
-            <h3 className="text-2xl font-bold mb-2">智能招聘，精准匹配</h3>
-            <p className="text-lg opacity-90">
-              使用AI技术为您找到最合适的候选人，让招聘变得简单高效
+            <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">从这里开始</h3>
+            <p className="text-lg opacity-95 drop-shadow-md">
+              Your next match is just one click away.
             </p>
           </div>
         </div>

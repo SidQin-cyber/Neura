@@ -30,32 +30,62 @@ export function CandidateResultsSection({
     return <MessageSkeleton />
   }
   
+  // 安全检查：确保candidates是有效的数组
+  if (!candidates || !Array.isArray(candidates)) {
+    console.error('CandidateResultsSection: candidates is not a valid array', candidates)
+    return (
+      <div className="text-red-500 p-4">
+        错误：候选人数据格式不正确
+      </div>
+    )
+  }
+  
+  console.log('🎯 CandidateResultsSection rendering:', {
+    candidatesCount: candidates.length,
+    firstCandidate: candidates[0] ? {
+      id: candidates[0].id,
+      name: candidates[0].name,
+      hasRequiredFields: !!(candidates[0].name && candidates[0].id)
+    } : null
+  })
+  
   const resultsContent = (
     <div className="space-y-4">
       {/* 简单的结果统计 */}
-      <div className="text-sm text-muted-foreground mb-6">
-        {t('search.found.candidates', { count: candidates.length })}
+      <div className="text-sm text-muted-foreground mb-6 -ml-4">
+        找到 {candidates.length} 个候选人
         {query && (
-                  <span className="ml-2">
-          搜索：&ldquo;{query}&rdquo;
-        </span>
+          <span className="ml-2">
+            搜索：&ldquo;{query}&rdquo;
+          </span>
         )}
       </div>
 
       {/* 候选人列表 - 简化版 */}
       {candidates.length > 0 ? (
         <div className="space-y-4">
-          {candidates.map((candidate) => (
-            <CandidateCard
-              key={candidate.id}
-              candidate={candidate}
-              simplified={true}
-            />
-          ))}
+          {candidates.map((candidate, index) => {
+            try {
+              return (
+                <CandidateCard
+                  key={candidate.id || `candidate-${index}`}
+                  candidate={candidate}
+                  simplified={true}
+                />
+              )
+            } catch (error) {
+              console.error('Error rendering candidate card:', error, candidate)
+              return (
+                <div key={`error-${index}`} className="text-red-500 p-2 border border-red-300 rounded">
+                  候选人 #{index + 1} 渲染失败
+                </div>
+              )
+            }
+          })}
         </div>
       ) : (
         <div className="text-sm text-muted-foreground py-4">
-          {t('search.noResults.candidates')}
+          没有找到符合条件的候选人
         </div>
       )}
     </div>

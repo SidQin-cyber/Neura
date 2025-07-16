@@ -55,13 +55,13 @@ export default function UserMenu({ user, variant = 'default' }: UserMenuProps) {
     router.refresh()
   }
 
-  const buttonSize = variant === 'sidebar' ? 'h-10 w-10' : 'h-8 w-8'
-  const avatarSize = variant === 'sidebar' ? 'h-10 w-10' : 'h-8 w-8'
+  const buttonSize = variant === 'sidebar' ? 'h-8 w-8' : 'h-6 w-6'
+  const avatarSize = variant === 'sidebar' ? 'h-8 w-8' : 'h-6 w-6'
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className={`relative ${buttonSize} rounded-full hover:bg-accent hover:text-accent-foreground transition-colors`}>
+        <Button variant="ghost" className={`relative ${buttonSize} rounded-md hover:bg-accent hover:text-accent-foreground transition-colors`}>
           <Avatar className={avatarSize}>
             <AvatarImage src={avatarUrl} alt={userName} />
             <AvatarFallback>{getInitials(userName, user.email)}</AvatarFallback>

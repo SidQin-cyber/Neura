@@ -17,8 +17,9 @@ const openai = new OpenAI({
 async function generateEmbedding(text) {
   try {
     const response = await openai.embeddings.create({
-      model: 'text-embedding-ada-002',
-      input: text
+      model: 'text-embedding-3-large',
+      input: text,
+      dimensions: 1536
     });
     
     return response.data[0].embedding;

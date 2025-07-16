@@ -25,6 +25,18 @@ const config = {
   			ring: 'hsl(var(--ring))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
+  			
+  			/* Enhanced text hierarchy - 精细文字灰度分层 */
+  			text: {
+  				primary: 'hsl(var(--text-primary))',
+  				'primary-alt': 'hsl(var(--text-primary-alt))',
+  				secondary: 'hsl(var(--text-secondary))',
+  				placeholder: 'hsl(var(--text-placeholder))',
+  			},
+  			
+  			/* Sidebar specific colors */
+  			'sidebar-bg': 'hsl(var(--sidebar-bg))',
+  			
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
   				foreground: 'hsl(var(--primary-foreground))'
@@ -75,6 +87,16 @@ const config = {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			}
+  		},
+  		/* 优化字体粗细设置 */
+  		fontWeight: {
+  			'heading': '600',  /* 主标题专用字重 */
+  		},
+  		/* 优化间距系统 */
+  		spacing: {
+  			'18': '4.5rem',   /* 72px */
+  			'22': '5.5rem',   /* 88px */
+  			'30': '7.5rem',   /* 120px */
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -159,6 +181,10 @@ const config = {
   		fontFamily: {
   			sans: [
   				'var(--font-sans)',
+                    ...fontFamily.sans
+                ],
+                heading: [
+                    'var(--font-sans)',
                     ...fontFamily.sans
                 ]
   		}

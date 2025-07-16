@@ -150,7 +150,7 @@ export function RecruitmentChatPanel({
             <div 
               className="absolute -top-8 left-0 right-0 h-8 pointer-events-none z-10"
               style={{
-                background: 'linear-gradient(to top, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%)'
+                background: 'linear-gradient(to top, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)'
               }}
             />
           )}

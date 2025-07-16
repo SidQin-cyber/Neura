@@ -12,9 +12,9 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
     }
 
     const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
+      model: 'text-embedding-3-large',
       input: text.trim(),
-      encoding_format: 'float',
+      dimensions: 1536,
     })
 
     if (response.data && response.data.length > 0) {

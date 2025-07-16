@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref=kwnljatqoisviobioelr"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_05a9befb119617fa28f39b81eb9b31d2d2349fb1"
+      }
+    },
+    "hf-mcp-server": {
+      "url": "https://huggingface.co/mcp",
+      "headers": {
+        "Authorization": "Bearer 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"
+      }
+    }
+  }
+} 

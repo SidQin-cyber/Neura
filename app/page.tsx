@@ -19,6 +19,7 @@ function HomePageContent() {
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isAtBottom, setIsAtBottom] = useState(true)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const { resetSearchState } = useSearch()
 
@@ -36,6 +37,41 @@ function HomePageContent() {
       window.removeEventListener('new-chat', handleNewChat)
     }
   }, [resetSearchState])
+
+  // 监听滚动，更新 isAtBottom 状态
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const threshold = 50
+      if (scrollHeight - scrollTop - clientHeight < threshold) {
+        setIsAtBottom(true)
+      } else {
+        setIsAtBottom(false)
+      }
+    }
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll() // 初始化状态
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // 当有新消息时自动滚动到对应区域
+  useEffect(() => {
+    if (messages.length === 0) return
+
+    const lastMessage = messages[messages.length - 1]
+    // 只在用户发送消息或收到助手回复时滚动
+    if (lastMessage.role === 'user' || lastMessage.role === 'assistant') {
+      const sectionId = lastMessage.id
+      requestAnimationFrame(() => {
+        const sectionElement = document.getElementById(`section-${sectionId}`)
+        sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
+  }, [messages])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
@@ -121,7 +157,7 @@ function HomePageContent() {
           setMessages={setMessages}
           stop={stop}
           append={append}
-          showScrollToBottomButton={false}
+          showScrollToBottomButton={!isAtBottom}
           scrollContainerRef={scrollContainerRef}
         />
       </div>

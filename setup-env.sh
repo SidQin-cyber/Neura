@@ -18,8 +18,8 @@ cat > .env.local << 'ENVEOF'
 # ================================
 
 # Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://suhchngsnkkuhjdioalo.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aGNobmdzbmtrdWhqZGlvYWxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyOTU2NDQsImV4cCI6MjA2Nzg3MTY0NH0.N8t6_TKpTtRJFkIjEV92pre6vZItavaDuF9rgrG4zOE
+NEXT_PUBLIC_SUPABASE_URL=https://kwnljatqoisviobioelr.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3bmxqYXRxb2lzdmlvYmlvZWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNTU4ODAsImV4cCI6MjA2NzkzMTg4MH0.5RXiwVdTb3dDWBY_nHDwOiFqGs8W18br3MiCubWUkCM
 
 # OpenAI Configuration
 OPENAI_API_KEY=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
