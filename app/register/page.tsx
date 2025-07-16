@@ -109,25 +109,20 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen bg-white">
-      {/* 左侧注册表单 */}
-      <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+      {/* 左侧注册表单 - 微微加宽 */}
+      <div className="flex flex-col justify-start px-4 pt-0 pb-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24 -mt-12" style={{ flexBasis: '42%' }}>
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-8">
-              <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">N</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-900">Neura</span>
+            <div className="flex items-center justify-center mb-[-60px]">
+              <img 
+                src="/providers/logos/logo1.svg" 
+                alt="Neura Logo" 
+                className="w-96 h-96"
+              />
             </div>
-            <h2 className="text-2xl/9 font-bold tracking-tight text-gray-900">
-              创建您的账户
-            </h2>
-            <p className="mt-2 text-sm/6 text-gray-500">
-              加入AI驱动的智能招聘平台
-            </p>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-0 pt-0">
             <form onSubmit={handleRegister} className="space-y-6">
               <div>
                 <Label htmlFor="fullName" className="block text-sm/6 font-medium text-gray-900">
@@ -143,7 +138,7 @@ export default function RegisterPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     disabled={isLoading}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
                     placeholder="请输入您的姓名"
                   />
                 </div>
@@ -163,7 +158,7 @@ export default function RegisterPage() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     disabled={isLoading}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
                     placeholder="请输入用户名（至少3位）"
                   />
                 </div>
@@ -186,7 +181,7 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
                     placeholder="请输入密码（至少8位）"
                   />
                 </div>
@@ -206,7 +201,7 @@ export default function RegisterPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isLoading}
-                    className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
                     placeholder="请再次输入密码"
                   />
                 </div>
@@ -216,7 +211,7 @@ export default function RegisterPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  className="flex w-full justify-center rounded-lg bg-[#8a5cf6] px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-[#7c3aed] hover:shadow-lg hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8a5cf6] transition-all duration-200 ease-out"
                 >
                   {isLoading ? '注册中...' : '注册'}
                 </Button>
@@ -238,19 +233,18 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* 右侧品牌展示 - 铺满整个高度 */}
-      <div className="relative hidden w-0 flex-1 lg:block">
+      {/* 右侧品牌展示 - 增强遮罩效果 */}
+      <div className="relative hidden lg:block" style={{ flexBasis: '58%' }}>
         <div className="absolute inset-0">
           <img
             alt="Neura AI招聘平台"
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1926&q=80"
+            src="/background-sign.png"
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           <div className="absolute bottom-10 left-10 right-10 text-white">
-            <h3 className="text-2xl font-bold mb-2">开启智能招聘之旅</h3>
-            <p className="text-lg opacity-90">
-              创建您的账户，体验AI驱动的智能招聘平台
+            <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">开始您的旅程</h3>
+            <p className="text-lg opacity-95 drop-shadow-md">
+              Build your talent network with AI.
             </p>
           </div>
         </div>

@@ -40,32 +40,35 @@ export const MessageSkeleton = () => {
 
 const SingleCardSkeleton = ({ variant }: { variant: 'candidate' | 'job' }) => {
   return (
-    <div className="bg-white rounded-lg px-6 py-4 -ml-8 transition-all duration-200 hover:bg-gray-50/50">
-      {/* 标题区域 */}
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <div className="flex-1 space-y-2">
-          {/* 主标题 */}
-          <ShimmerElement className="h-5 w-3/4" />
-          {/* 副标题 */}
-          <ShimmerElement className="h-4 w-1/2" />
+    <div className="bg-white rounded-xl px-4 py-3 shadow-[0_4px_12px_rgba(0,0,0,0.06)] cursor-pointer -ml-8">
+      {/* 标题区域 - 匹配候选人卡片布局 */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
+        <div className="flex-1 min-w-0 space-y-1">
+          {/* 主标题（姓名/职位） */}
+          <ShimmerElement className="h-[1.375rem] w-20" />
+          {/* 副标题（职位/公司） */}
+          <ShimmerElement className="h-4 w-32" />
         </div>
-        {/* 右侧徽章位置 */}
-        <ShimmerElement className="h-6 w-16 rounded-full" />
+        {/* 右侧匹配度徽章 */}
+        <ShimmerElement className="h-7 w-14 rounded-full flex-shrink-0" />
       </div>
 
-      {/* 信息行 */}
-      <div className="space-y-2 mb-3">
-        <ShimmerElement className="h-3 w-2/3" />
-        <ShimmerElement className="h-3 w-1/2" />
-      </div>
-
-      {/* 标签行 */}
-      <div className="flex flex-wrap gap-2">
-        <ShimmerElement className="h-5 w-16 rounded-full" />
-        <ShimmerElement className="h-5 w-20 rounded-full" />
-        <ShimmerElement className="h-5 w-12 rounded-full" />
+      {/* 基本信息行 - 位置和经验 */}
+      <div className="flex flex-wrap items-center gap-4 mt-2">
+        <ShimmerElement className="h-4 w-16" />
+        <ShimmerElement className="h-4 w-20" />
         {variant === 'job' && (
-          <ShimmerElement className="h-5 w-14 rounded-full" />
+          <ShimmerElement className="h-4 w-24" />
+        )}
+      </div>
+
+      {/* 技能标签行 */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        <ShimmerElement className="h-6 w-14 rounded-full" />
+        <ShimmerElement className="h-6 w-16 rounded-full" />
+        <ShimmerElement className="h-6 w-12 rounded-full" />
+        {variant === 'job' && (
+          <ShimmerElement className="h-6 w-14 rounded-full" />
         )}
       </div>
     </div>

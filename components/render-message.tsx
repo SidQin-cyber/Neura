@@ -174,6 +174,7 @@ export function RenderMessage({
       {/* Handle recruitment search results */}
       {(() => {
         // Check if message contains candidate results
+        // More robust detection using name AND (match_score OR final_score)
         if (
           message.role === 'assistant' &&
           Array.isArray(message.content) &&
@@ -181,17 +182,32 @@ export function RenderMessage({
           message.content[0] &&
           typeof message.content[0] === 'object' &&
           'name' in message.content[0] &&
-          'current_title' in message.content[0]
+          ('match_score' in message.content[0] || 'final_score' in message.content[0])
         ) {
-          return (
-            <CandidateResultsSection
-              candidates={message.content as CandidateSearchResult[]}
-              isOpen={getIsOpen(`${messageId}-candidates`)}
-              onOpenChange={open => onOpenChange(`${messageId}-candidates`, open)}
-              query=""
-              totalCount={message.content.length}
-            />
-          )
+          try {
+            return (
+              <CandidateResultsSection
+                candidates={message.content as any[]}
+                isOpen={getIsOpen(`${messageId}-candidates`)}
+                onOpenChange={open => onOpenChange(`${messageId}-candidates`, open)}
+                query=""
+                totalCount={message.content.length}
+              />
+            )
+          } catch (error) {
+            console.error('Error rendering candidate results:', error)
+            return (
+              <AnswerSection
+                content="候选人结果渲染时出现错误，请重试。"
+                isOpen={getIsOpen(messageId)}
+                onOpenChange={open => onOpenChange(messageId, open)}
+                chatId={chatId}
+                showActions={true}
+                messageId={messageId}
+                reload={reload}
+              />
+            )
+          }
         }
         
         // Check if message contains job results

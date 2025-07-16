@@ -9,12 +9,75 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  
+  /* 页面进入动画 - 淡入 + 微滑入 */
+  .animate-fade-in-up {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+    animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s forwards;
+    will-change: opacity, transform;
+  }
+
+  .typewriter-container {
+    will-change: contents;
+  }
+
+  .cursor-blink {
+    animation: cursorBlink 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(400%);
+    opacity: 0;
+  }
 }
 
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
+
+    /* Enhanced text hierarchy - 精细文字灰度分层 */
+    --text-primary: 212 25% 17%;    /* #2C2C2C - 主文案 */
+    --text-primary-alt: 0 0% 10%;   /* #1A1A1A - 主文案备选 */
+    --text-secondary: 215 16% 48%;  /* #7B7B8B - 副文案 */
+    --text-placeholder: 220 14% 69%; /* #B0B3C1 - 占位符 */
+
+    /* Sidebar specific background - 侧边栏专用背景 */
+    --sidebar-bg: 210 17% 98%;      /* #F8F9FB - 极浅灰，与主背景协调 */
+
+    /* Avatar colors - 头像颜色系统 */
+    --avatar-bg: #F2F3F5;           /* 更明显的中性背景色 */
+    --avatar-text: #5E6272;         /* 默认文字色（柔和、优雅、可读） */
+    --avatar-hover: #8a5cf6;        /* hover状态主色 */
 
     --card: 0 0% 96.1%;
     --card-foreground: 0 0% 45.1%;
@@ -70,6 +133,20 @@
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
 
+    /* Enhanced text hierarchy for dark mode */
+    --text-primary: 0 0% 95%;        /* 白色主文案 */
+    --text-primary-alt: 0 0% 98%;    /* 更亮的主文案 */
+    --text-secondary: 0 0% 70%;      /* 副文案 */
+    --text-placeholder: 0 0% 50%;    /* 占位符 */
+
+    /* Sidebar background for dark mode */
+    --sidebar-bg: 240 6% 8%;         /* 深色模式下的侧边栏背景 */
+
+    /* Avatar colors for dark mode */
+    --avatar-bg: #4B5563;            /* 深色模式更明显的背景 */
+    --avatar-text: #D1D5DB;          /* 深色模式文字色 */
+    --avatar-hover: #a78bfa;         /* 深色模式hover主色 */
+
     --card: 0 0% 14.9%;
     --card-foreground: 0 0% 63.9%;
 
@@ -120,5 +197,6 @@
   }
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
   }
 }

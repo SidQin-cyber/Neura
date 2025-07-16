@@ -1,10 +1,9 @@
-import { SearchMode } from '@/components/model-selector'
-import { CandidateSearchResult, JobSearchResult } from '@/lib/types/recruitment'
+// Types will be defined inline since they may not exist in the types file yet
 
-interface SearchParams {
+export interface SearchParams {
   query: string
-  mode: SearchMode
-  filters?: {
+  mode: 'candidates' | 'jobs'
+  filters: {
     location?: string
     experience?: string
     salary?: string
@@ -13,12 +12,80 @@ interface SearchParams {
   }
 }
 
-interface SearchResponse {
+export interface SearchResponse {
   success: boolean
-  data?: CandidateSearchResult[] | JobSearchResult[]
+  data?: any
   error?: string
 }
 
+export interface StreamingSearchResponse {
+  success: boolean
+  stream?: ReadableStream<Uint8Array>
+  error?: string
+}
+
+export interface SearchStreamChunk {
+  type: 'meta' | 'chunk' | 'complete' | 'error'
+  data?: any
+  chunk_info?: {
+    chunk_number: number
+    total_chunks: number
+    candidates_in_chunk: number
+    is_final: boolean
+  }
+  total?: number
+  processed?: number
+  phase?: string
+  reranked?: number
+  total_processed?: number
+  pipeline_summary?: {
+    recall_count: number
+    rerank_count: number
+    top_score: number
+    chunks_delivered: number
+  }
+  error?: string
+}
+
+// Enhanced streaming search function
+export async function universalSearchStreaming(params: SearchParams): Promise<StreamingSearchResponse> {
+  try {
+    const { query, mode, filters } = params
+
+    // Call the streaming search API
+    const response = await fetch('/api/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        query,
+        mode,
+        filters
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      return { success: false, error: errorData.error || 'Search request failed' }
+    }
+
+    // Return the streaming response
+    return { 
+      success: true, 
+      stream: response.body || undefined 
+    }
+  } catch (error) {
+    console.error('搜索API错误:', error)
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : '搜索请求失败' 
+    }
+  }
+}
+
+// Legacy non-streaming search function (kept for backward compatibility)
 export async function universalSearch(params: SearchParams): Promise<SearchResponse> {
   try {
     const { query, mode, filters } = params
@@ -53,241 +120,110 @@ export async function universalSearch(params: SearchParams): Promise<SearchRespo
   }
 }
 
-// 模拟的搜索函数，用于开发阶段
-export async function mockUniversalSearch(params: SearchParams): Promise<SearchResponse> {
-  // 模拟API延迟
-  await new Promise(resolve => setTimeout(resolve, 1000))
-  
-  const { mode, query, filters } = params
-  
-  // 模拟数据库无数据的情况：如果查询包含特定关键词，返回空结果
-  if (query.includes('无数据') || query.includes('测试空结果')) {
-    return { success: true, data: [] }
-  }
-  
-  if (mode === 'candidates') {
-    let mockCandidates: CandidateSearchResult[] = [
-      {
-        id: '1',
-        data: {} as any,
-        similarity: 0.95,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        name: '张三',
-        email: 'zhangsan@example.com',
-        phone: '13800138000',
-        current_title: '高级前端开发工程师',
-        current_company: '科技公司',
-        location: '北京',
-        years_of_experience: 5,
-        expected_salary_min: 20000,
-        expected_salary_max: 35000,
-        skills: ['React', 'TypeScript', 'Node.js'],
-        file_url: null
-      },
-      {
-        id: '2',
-        data: {} as any,
-        similarity: 0.88,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        name: '李四',
-        email: 'lisi@example.com',
-        phone: '13800138001',
-        current_title: '全栈开发工程师',
-        current_company: '互联网公司',
-        location: '上海',
-        years_of_experience: 3,
-        expected_salary_min: 18000,
-        expected_salary_max: 30000,
-        skills: ['Vue', 'Python', 'MySQL'],
-        file_url: null
-      },
-      {
-        id: '3',
-        data: {} as any,
-        similarity: 0.82,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        name: '王五',
-        email: 'wangwu@example.com',
-        phone: '13800138002',
-        current_title: '后端开发工程师',
-        current_company: '金融公司',
-        location: '深圳',
-        years_of_experience: 4,
-        expected_salary_min: 22000,
-        expected_salary_max: 38000,
-        skills: ['Java', 'Spring', 'Redis'],
-        file_url: null
-      },
-      {
-        id: '4',
-        data: {} as any,
-        similarity: 0.91,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        name: '赵六',
-        email: 'zhaoliu@example.com',
-        phone: '13800138003',
-        current_title: 'AI工程师',
-        current_company: 'AI公司',
-        location: '北京',
-        years_of_experience: 6,
-        expected_salary_min: 30000,
-        expected_salary_max: 50000,
-        skills: ['Python', 'TensorFlow', 'PyTorch'],
-        file_url: null
-      },
-      {
-        id: '5',
-        data: {} as any,
-        similarity: 0.85,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        name: '钱七',
-        email: 'qianqi@example.com',
-        phone: '13800138004',
-        current_title: '产品经理',
-        current_company: '电商公司',
-        location: '上海',
-        years_of_experience: 4,
-        expected_salary_min: 18000,
-        expected_salary_max: 30000,
-        skills: ['产品设计', '用户研究', 'SQL'],
-        file_url: null
-      }
-    ]
-    
-    // 应用筛选条件
-    if (filters?.location) {
-      mockCandidates = mockCandidates.filter(candidate => 
-        candidate.location?.includes(filters.location!)
-      )
-    }
-    
-    if (filters?.salary) {
-      const [minSalary, maxSalary] = filters.salary.split('-').map(s => parseInt(s))
-      // 模拟薪资筛选逻辑（这里简化处理）
-      if (minSalary || maxSalary) {
-        mockCandidates = mockCandidates.filter(candidate => {
-          // 模拟候选人期望薪资，实际应该从数据库字段获取
-          const expectedSalary = candidate.similarity * 30 + 15 // 简化的薪资计算
-          if (minSalary && expectedSalary < minSalary) return false
-          if (maxSalary && expectedSalary > maxSalary) return false
-          return true
-        })
+// Enhanced utility function to parse chunked streaming search responses
+export async function parseSearchStream(
+  stream: ReadableStream<Uint8Array>,
+  onChunk: (chunk: SearchStreamChunk) => void,
+  onComplete: (results: any[]) => void,
+  onError: (error: string) => void
+): Promise<void> {
+  const reader = stream.getReader()
+  const decoder = new TextDecoder()
+  const allResults: any[] = []
+  let chunksReceived = 0
+
+  try {
+    let buffer = ''
+
+    while (true) {
+      const { done, value } = await reader.read()
+      
+      if (done) break
+
+      // Decode the chunk and add to buffer
+      buffer += decoder.decode(value, { stream: true })
+      
+      // Process complete lines
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || '' // Keep the incomplete line in buffer
+
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            const chunk: SearchStreamChunk = JSON.parse(line)
+            
+            // Handle different chunk types
+            switch (chunk.type) {
+              case 'meta':
+                console.log('📊 Meta info:', chunk.phase, chunk.total, chunk.reranked)
+                onChunk(chunk)
+                break
+              
+              case 'chunk':
+                if (chunk.data && Array.isArray(chunk.data)) {
+                  // Add candidates from this chunk to the total results
+                  allResults.push(...chunk.data)
+                  chunksReceived++
+                  
+                  console.log(`📦 Chunk ${chunk.chunk_info?.chunk_number || chunksReceived} received:`, {
+                    candidates: chunk.data.length,
+                    total_so_far: allResults.length,
+                    is_final: chunk.chunk_info?.is_final
+                  })
+                  
+                  // Call onChunk for UI updates
+                  onChunk(chunk)
+                  
+                  // If this is the final chunk, we can call onComplete immediately
+                  // Otherwise, we'll wait for the 'complete' signal
+                  if (chunk.chunk_info?.is_final) {
+                    console.log('🎉 Final chunk received, calling onComplete with', allResults.length, 'total candidates')
+                    onComplete(allResults)
+                    return
+                  }
+                }
+                break
+              
+              case 'complete':
+                console.log('✅ Stream completion signal received')
+                console.log('📊 Pipeline summary:', chunk.pipeline_summary)
+                onChunk(chunk)
+                
+                // Call onComplete with all accumulated results
+                // (this may be redundant if we already called it on final chunk)
+                if (allResults.length > 0) {
+                  onComplete(allResults)
+                } else {
+                  // Handle case where no candidates were found
+                  onComplete([])
+                }
+                return
+              
+              case 'error':
+                console.error('❌ Stream error:', chunk.error)
+                onError(chunk.error || 'Unknown streaming error')
+                return
+              
+              default:
+                console.warn('Unknown chunk type:', chunk.type)
+            }
+          } catch (parseError) {
+            console.error('Failed to parse streaming chunk:', parseError, 'Raw line:', line)
+          }
+        }
       }
     }
-    
-    return { success: true, data: mockCandidates }
-  } else {
-    let mockJobs: JobSearchResult[] = [
-      {
-        id: '1',
-        data: {} as any,
-        similarity: 0.92,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        title: '高级前端开发工程师',
-        company: '科技创新公司',
-        location: '北京',
-        employment_type: 'full-time',
-        salary_min: 20000,
-        salary_max: 35000,
-        currency: 'CNY',
-        description: '负责前端架构设计和开发，要求有丰富的React经验',
-        skills_required: ['React', 'TypeScript', 'Webpack'],
-        experience_required: 3
-      },
-      {
-        id: '2',
-        data: {} as any,
-        similarity: 0.87,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        title: '全栈开发工程师',
-        company: '互联网公司',
-        location: '上海',
-        employment_type: 'full-time',
-        salary_min: 25000,
-        salary_max: 40000,
-        currency: 'CNY',
-        description: '负责全栈开发，前后端技术栈都要熟悉',
-        skills_required: ['Vue', 'Node.js', 'MongoDB'],
-        experience_required: 3
-      },
-      {
-        id: '3',
-        data: {} as any,
-        similarity: 0.85,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        title: '后端开发工程师',
-        company: '金融科技公司',
-        location: '深圳',
-        employment_type: 'full-time',
-        salary_min: 22000,
-        salary_max: 38000,
-        currency: 'CNY',
-        description: '负责后端系统架构和开发，金融行业经验优先',
-        skills_required: ['Java', 'Spring Boot', 'MySQL'],
-        experience_required: 3
-      },
-      {
-        id: '4',
-        data: {} as any,
-        similarity: 0.89,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        title: 'AI算法工程师',
-        company: '人工智能公司',
-        location: '北京',
-        employment_type: 'full-time',
-        salary_min: 30000,
-        salary_max: 50000,
-        currency: 'CNY',
-        description: '负责AI算法研发和优化，要求深度学习经验',
-        skills_required: ['Python', 'TensorFlow', 'PyTorch'],
-        experience_required: 5
-      },
-      {
-        id: '5',
-        data: {} as any,
-        similarity: 0.83,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        title: '产品经理',
-        company: '电商公司',
-        location: '上海',
-        employment_type: 'full-time',
-        salary_min: 18000,
-        salary_max: 30000,
-        currency: 'CNY',
-        description: '负责产品策略制定和功能规划',
-        skills_required: ['产品规划', '数据分析', '用户体验'],
-        experience_required: 3
-      }
-    ]
-    
-    // 应用筛选条件
-    if (filters?.location) {
-      mockJobs = mockJobs.filter(job => 
-        job.location?.includes(filters.location!)
-      )
+
+    // If we reach here without a complete signal, still call onComplete
+    if (allResults.length > 0) {
+      console.log('🎯 Stream ended without complete signal, calling onComplete with', allResults.length, 'candidates')
+      onComplete(allResults)
     }
-    
-    if (filters?.salary) {
-      const [minSalary, maxSalary] = filters.salary.split('-').map(s => parseInt(s))
-      if (minSalary || maxSalary) {
-        mockJobs = mockJobs.filter(job => {
-          if (minSalary && job.salary_max && job.salary_max < minSalary) return false
-          if (maxSalary && job.salary_min && job.salary_min > maxSalary) return false
-          return true
-        })
-      }
-    }
-    
-    return { success: true, data: mockJobs }
+
+  } catch (error) {
+    console.error('Error reading search stream:', error)
+    onError(error instanceof Error ? error.message : 'Stream reading failed')
+  } finally {
+    reader.releaseLock()
   }
 } 

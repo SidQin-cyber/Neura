@@ -20,6 +20,64 @@ import { useLanguage } from '@/lib/context/language-context'
 // 生成唯一ID的函数
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
+// 打字机效果组件
+function TypewriterText({ text, delay = 100, startDelay = 1000 }: { text: string, delay?: number, startDelay?: number }) {
+  const [displayedText, setDisplayedText] = useState('')
+  const [showCursor, setShowCursor] = useState(false)
+  const animationRef = useRef<number>()
+  const timeoutRef = useRef<NodeJS.Timeout>()
+
+  useEffect(() => {
+    let startTime: number
+    let charIndex = 0
+
+    const startTimer = setTimeout(() => {
+      setShowCursor(true)
+      
+      const animate = (currentTime: number) => {
+        if (!startTime) startTime = currentTime
+
+        const elapsed = currentTime - startTime
+        const targetIndex = Math.floor(elapsed / delay)
+
+        if (targetIndex > charIndex && charIndex < text.length) {
+          charIndex = Math.min(targetIndex, text.length)
+          setDisplayedText(text.slice(0, charIndex))
+        }
+
+        if (charIndex < text.length) {
+          animationRef.current = requestAnimationFrame(animate)
+        } else {
+          // 动画完成，3秒后隐藏光标
+          setTimeout(() => setShowCursor(false), 3000)
+        }
+      }
+
+      animationRef.current = requestAnimationFrame(animate)
+    }, startDelay)
+
+    timeoutRef.current = startTimer
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [text, delay, startDelay])
+
+  return (
+    <span className="text-lg font-normal text-text-secondary typewriter-container">
+      {displayedText}
+      {showCursor && (
+        <span className="cursor-blink text-text-secondary">|</span>
+      )}
+    </span>
+  )
+}
+
 interface ChatPanelProps {
   input: string
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
@@ -65,11 +123,10 @@ export function ChatPanel({
 
   const handleCompositionEnd = () => {
     setIsComposing(false)
-    // 使用更短的延迟时间，只是为了避免输入法结束时的意外触发
     setEnterDisabled(true)
     setTimeout(() => {
       setEnterDisabled(false)
-    }, 50) // 进一步减少到50ms，几乎不影响用户体验
+    }, 50)
   }
 
 
@@ -89,71 +146,93 @@ export function ChatPanel({
     )
   }
 
-  // 处理搜索提交
+  // 处理搜索提交 - 简化版本：骨架图 -> 一次性显示结果
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     if (input.trim().length === 0) return
     
+    const userQuery = input.trim()
     setIsLoading(true)
     
     try {
-      // 1. 添加用户消息
+      // 1. 添加用户消息（这会触发 ChatMessages 显示骨架屏）
       const userMessage = {
         role: 'user' as const,
-        content: input.trim(),
+        content: userQuery,
         id: generateId()
       }
       append(userMessage)
       
-      // 清空输入框
+      // 2. 清空输入框
       handleInputChange({ target: { value: '' } } as React.ChangeEvent<HTMLTextAreaElement>)
       
-      // 2. 执行搜索
+      // 3. 执行搜索（后台处理召回/重排，不显示中间状态）
       const enhancedQuery = filters.specialReq 
-        ? `${input} ${filters.specialReq}` 
-        : input
+        ? `${userQuery} ${filters.specialReq}` 
+        : userQuery
 
-      const response = await universalSearch({
+      const { universalSearchStreaming, parseSearchStream } = await import('@/lib/api/search')
+      
+      const response = await universalSearchStreaming({
         query: enhancedQuery,
         mode: searchMode,
         filters: {
           location: filters.location,
-          experience: '', // 可以后续添加
+          experience: '',
           salary: filters.salaryMin && filters.salaryMax 
             ? `${filters.salaryMin}-${filters.salaryMax}` 
             : filters.salaryMin || filters.salaryMax || '',
-          skills: [], // 可以后续添加
+          skills: [],
           education: filters.education
         }
       })
       
-      // 3. 添加助手消息（包含搜索结果）
-      if (response.success && response.data) {
-        const assistantMessage = {
-          role: 'assistant' as const,
-          content: response.data, // 直接将搜索结果作为 content
-          id: generateId()
-        }
-        append(assistantMessage)
+      if (response.success && response.stream) {
+        // 4. 静默处理流式数据，只在完成时显示结果
+        await parseSearchStream(
+          response.stream,
+          // onChunk: 只打印日志，不更新UI
+          (chunk) => {
+            console.log('📡 流式更新:', chunk.type, chunk.data?.length || '')
+          },
+          // onComplete: 一次性显示所有结果
+          (finalResults) => {
+            console.log('✅ 搜索完成, 总结果数:', finalResults.length)
+            
+            const assistantMessage = {
+              role: 'assistant' as const,
+              content: finalResults.length > 0 
+                ? finalResults as any 
+                : '抱歉，没有找到符合您要求的结果。请尝试调整搜索条件或使用其他关键词。',
+              id: generateId()
+            }
+            append(assistantMessage)
+            setIsLoading(false) // 隐藏骨架屏，显示结果
+          },
+          // onError: 显示错误信息
+          (error) => {
+            console.error('搜索失败:', error)
+            const errorMessage = {
+              role: 'assistant' as const,
+              content: `❌ 搜索失败：${error}`,
+              id: generateId()
+            }
+            append(errorMessage)
+            setIsLoading(false)
+          }
+        )
       } else {
-        const errorMessage = {
-          role: 'assistant' as const,
-          content: '搜索过程中出现错误，请重试。',
-          id: generateId()
-        }
-        append(errorMessage)
-        console.error('搜索失败:', response.error)
+        throw new Error(response.error || '搜索请求失败')
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('搜索错误:', error)
       const errorMessage = {
         role: 'assistant' as const,
-        content: '搜索过程中出现错误，请重试。',
+        content: `❌ 搜索过程中出现错误：${error.message}`,
         id: generateId()
       }
       append(errorMessage)
-      console.error('搜索错误:', error)
-    } finally {
       setIsLoading(false)
     }
   }
@@ -204,12 +283,16 @@ export function ChatPanel({
       {messages.length === 0 && (
         <div className="mb-10 flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
           <div className="max-w-3xl w-full mx-auto flex flex-col items-center">
-            <h1 className="text-2xl font-semibold text-gray-300 leading-relaxed">
-              Hi, I&apos;m Neura.
+            <h1 className="text-2xl font-heading text-text-primary leading-relaxed animate-fade-in-up">
+              Hi, I&apos;m <span className="text-[#8a5cf6] dark:text-[#a78bfa]">N</span>eura.
             </h1>
-            <p className="text-lg font-normal text-gray-300 mt-3">
-              Let&apos;s find your perfect candidate.
-            </p>
+            <div className="mt-6 min-h-[1.75rem] flex items-center justify-center">
+              <TypewriterText 
+                text="Always here when you need me." 
+                delay={80} 
+                startDelay={1500}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -222,7 +305,7 @@ export function ChatPanel({
           <div 
             className="absolute -top-8 left-0 right-0 h-8 pointer-events-none z-10"
             style={{
-              background: 'linear-gradient(to top, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 50%, transparent 100%)'
+              background: 'linear-gradient(to top, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)'
             }}
           />
         )}

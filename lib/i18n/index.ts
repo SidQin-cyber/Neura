@@ -18,7 +18,7 @@ export const translations = {
     
     // Chat Interface
     'chat.greeting.title': 'Hi, I\'m Neura.',
-    'chat.greeting.subtitle': 'Let\'s find your perfect candidate.',
+    'chat.greeting.subtitle': 'Always here when you need me.',
     'chat.placeholder.candidates': 'Describe the candidate you\'re looking for, e.g., 5 years Java developer in Beijing...',
     'chat.placeholder.jobs': 'Describe the position you want to match, e.g., Senior Frontend Engineer, React, 15-25K...',
     
@@ -90,7 +90,7 @@ export const translations = {
     
     // Chat Interface
     'chat.greeting.title': 'Hi, I\'m Neura.',
-    'chat.greeting.subtitle': 'Let\'s find your perfect candidate.',
+    'chat.greeting.subtitle': 'Always here when you need me.',
     'chat.placeholder.candidates': '描述你要找的候选人，例如：5年Java开发经验，熟悉Spring框架，在北京...',
     'chat.placeholder.jobs': '描述你要匹配的职位，例如：高级前端工程师，React开发，15-25K...',
     

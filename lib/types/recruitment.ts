@@ -28,6 +28,11 @@ export interface Resume {
   experience: ExperienceRecord[] | null
   certifications: CertificationRecord[] | null
   languages: LanguageRecord[] | null
+  // 🔥 新增字段：AI搜索的核心数据
+  summary: string | null                     // 个人简介
+  relocation_preferences: string[] | null    // 可接受工作地点
+  projects: ProjectRecord[] | null           // 项目经验
+  //
   raw_data: Record<string, any> | null
   file_url: string | null
   file_name: string | null
@@ -56,6 +61,18 @@ export interface Job {
   education_required: string | null
   industry: string | null
   department: string | null
+  // 🔥 新增字段：AI搜索的核心数据
+  job_summary: string | null                  // 岗位亮点总结
+  team_info: TeamInfoRecord | null           // 团队信息
+  growth_opportunities: string[] | null      // 成长机会
+  work_environment: string | null            // 工作环境
+  company_culture: string | null             // 公司文化
+  remote_policy: string | null               // 远程工作政策
+  interview_process: InterviewProcessRecord | null  // 面试流程
+  contact_info: ContactInfoRecord | null     // 联系人信息
+  urgency_level: 'urgent' | 'normal' | 'pipeline' | null  // 紧急程度
+  expected_start_date: string | null         // 期望入职时间
+  //
   embedding: number[] | null
   status: 'active' | 'inactive' | 'closed'
   created_at: string
@@ -146,6 +163,43 @@ export interface LanguageRecord {
   certification: string | null
 }
 
+export interface ProjectRecord {
+  name: string
+  description: string
+  tech_stack: string[]
+  start_date?: string
+  end_date?: string
+  project_url?: string
+  github_url?: string
+}
+
+export interface TeamInfoRecord {
+  size?: string                    // 团队规模，如"10-15人"
+  lead_background?: string         // 团队Leader背景
+  team_culture?: string           // 团队文化
+  tech_stack?: string[]           // 团队使用的技术栈
+  work_style?: string             // 工作方式
+  collaboration_tools?: string[]   // 协作工具
+}
+
+export interface InterviewProcessRecord {
+  rounds?: string                 // 面试轮次，如"3轮"
+  duration?: string               // 预计时长，如"2-3周"
+  format?: string                 // 面试形式，如"线上+线下"
+  preparation?: string            // 准备建议
+  stages?: string[]               // 具体阶段，如["技术面试", "HR面试", "总监面试"]
+}
+
+export interface ContactInfoRecord {
+  hr_name?: string               // HR姓名
+  hr_email?: string              // HR邮箱
+  hr_phone?: string              // HR电话
+  hiring_manager_name?: string   // 招聘经理姓名
+  hiring_manager_email?: string  // 招聘经理邮箱
+  wechat?: string                // 微信号
+  department_head?: string       // 部门负责人
+}
+
 // 搜索相关类型
 export interface SearchFilters {
   location?: string
@@ -177,7 +231,14 @@ export interface CandidateSearchResult extends SearchResult<Resume> {
   expected_salary_min: number | null
   expected_salary_max: number | null
   skills: string[]
+  // 🔥 新增字段：AI搜索增强
+  summary: string | null
+  relocation_preferences: string[] | null
+  projects: ProjectRecord[] | null
+  //
   file_url: string | null
+  // 🔥 Rerank专用的丰富文本内容
+  full_text_content?: string
 }
 
 export interface JobSearchResult extends SearchResult<Job> {
@@ -191,6 +252,19 @@ export interface JobSearchResult extends SearchResult<Job> {
   description: string | null
   skills_required: string[]
   experience_required: number | null
+  // 🔥 新增字段：AI搜索增强
+  job_summary: string | null
+  team_info: TeamInfoRecord | null
+  growth_opportunities: string[] | null
+  work_environment: string | null
+  company_culture: string | null
+  remote_policy: string | null
+  interview_process: InterviewProcessRecord | null
+  contact_info: ContactInfoRecord | null
+  urgency_level: 'urgent' | 'normal' | 'pipeline' | null
+  expected_start_date: string | null
+  // 🔥 Rerank专用的丰富文本内容
+  full_text_content?: string
 }
 
 export interface MatchResult {

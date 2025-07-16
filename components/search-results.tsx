@@ -35,7 +35,7 @@ export function SearchResults({
   // --- List Mode Rendering ---
   if (displayMode === 'list') {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         {results.map((result, index) => (
           <Link
             href={result.url}
@@ -45,7 +45,7 @@ export function SearchResults({
             className="block"
           >
             <Card className="w-full hover:bg-muted/50 transition-colors">
-              <CardContent className="p-2 flex items-start space-x-2">
+              <CardContent className="p-4 flex items-start space-x-3">
                 <Avatar className="h-4 w-4 mt-1 flex-shrink-0">
                   <AvatarImage
                     src={`https://www.google.com/s2/favicons?domain=${
@@ -53,22 +53,19 @@ export function SearchResults({
                     }`}
                     alt={new URL(result.url).hostname}
                   />
-                  <AvatarFallback className="text-xs">
+                  <AvatarFallback>
                     {new URL(result.url).hostname[0]}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-grow overflow-hidden space-y-0.5">
-                  <p className="text-sm font-medium line-clamp-1">
-                    {result.title || new URL(result.url).pathname}
-                  </p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-medium text-text-primary line-clamp-1 mb-2">
+                    {result.title}
+                  </h3>
+                  <p className="text-xs text-text-secondary line-clamp-2 mb-2">
                     {result.content}
                   </p>
-                  <div className="text-xs text-muted-foreground/80 mt-1 truncate">
-                    <span className="underline">
-                      {new URL(result.url).hostname}
-                    </span>{' '}
-                    - {index + 1}
+                  <div className="text-xs text-text-placeholder truncate">
+                    {displayUrlName(result.url)}
                   </div>
                 </div>
               </CardContent>
@@ -81,16 +78,16 @@ export function SearchResults({
 
   // --- Grid Mode Rendering (Existing Logic) ---
   return (
-    <div className="flex flex-wrap -m-1">
+    <div className="flex flex-wrap gap-3">
       {displayedGridResults.map((result, index) => (
-        <div className="w-1/2 md:w-1/4 p-1" key={index}>
+        <div className="w-[calc(50%-0.375rem)] md:w-[calc(25%-0.5625rem)]" key={index}>
           <Link href={result.url} passHref target="_blank">
             <Card className="flex-1 h-full hover:bg-muted/50 transition-colors">
-              <CardContent className="p-2 flex flex-col justify-between h-full">
-                <p className="text-xs line-clamp-2 min-h-[2rem]">
+              <CardContent className="p-4 flex flex-col justify-between h-full">
+                <p className="text-xs text-text-primary line-clamp-2 min-h-[2.5rem] leading-relaxed">
                   {result.title || result.content}
                 </p>
-                <div className="mt-2 flex items-center space-x-1">
+                <div className="mt-4 flex items-center space-x-2">
                   <Avatar className="h-4 w-4">
                     <AvatarImage
                       src={`https://www.google.com/s2/favicons?domain=${
@@ -102,7 +99,7 @@ export function SearchResults({
                       {new URL(result.url).hostname[0]}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="text-xs opacity-60 truncate">
+                  <div className="text-xs text-text-placeholder truncate">
                     {`${displayUrlName(result.url)} - ${index + 1}`}
                   </div>
                 </div>
@@ -112,12 +109,12 @@ export function SearchResults({
         </div>
       ))}
       {!showAllResults && additionalResultsCount > 0 && (
-        <div className="w-1/2 md:w-1/4 p-1">
+        <div className="w-[calc(50%-0.375rem)] md:w-[calc(25%-0.5625rem)]">
           <Card className="flex-1 flex h-full items-center justify-center">
-            <CardContent className="p-2">
+            <CardContent className="p-4">
               <Button
                 variant={'link'}
-                className="text-muted-foreground"
+                className="text-text-secondary"
                 onClick={handleViewMore}
               >
                 View {additionalResultsCount} more
