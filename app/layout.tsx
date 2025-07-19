@@ -86,7 +86,7 @@ export default async function RootLayout({
             // Authenticated layout - show sidebar and header
             <div className="flex min-h-screen">
               <SimpleSidebar />
-              <div className="flex flex-col flex-1 ml-12">
+              <div className="flex flex-col flex-1 ml-16">
                 <Header user={user} />
                 <main className="flex flex-1">
                   <ArtifactRoot>{children}</ArtifactRoot>

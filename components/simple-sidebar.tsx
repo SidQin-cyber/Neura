@@ -55,9 +55,9 @@ export function SimpleSidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="w-12 h-screen bg-sidebar-bg border-r-[0.5px] border-border/30 flex flex-col items-center py-3 fixed left-0 top-0 z-50">
+      <div className="w-16 h-screen bg-sidebar-bg border-r-[0.5px] border-border/30 flex flex-col items-center py-4 fixed left-0 top-0 z-50">
         {/* 顶部按钮区域 */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-3">
           {/* Logo */}
           <button 
             onClick={handleNewChat}
@@ -71,7 +71,7 @@ export function SimpleSidebar() {
             <TooltipTrigger asChild>
               <button 
                 onClick={handleNewChat}
-                className="flex items-center justify-center w-10 h-10 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
+                className="flex items-center justify-center w-12 h-12 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
               >
                 <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </button>
@@ -90,7 +90,7 @@ export function SimpleSidebar() {
             <TooltipTrigger asChild>
               <button 
                 onClick={() => setIsUploadModalOpen(true)}
-                className="flex items-center justify-center w-10 h-10 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
+                className="flex items-center justify-center w-12 h-12 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
               >
                 <Upload className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </button>
