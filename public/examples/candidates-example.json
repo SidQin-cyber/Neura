@@ -2,6 +2,7 @@
   {
     "name": "张三",
     "title": "高级前端工程师",
+    "age": 28,
     "experience": "5年",
     "skills": ["React", "TypeScript", "Vue.js", "Node.js"],
     "location": "北京",
@@ -13,6 +14,7 @@
   {
     "name": "李四",
     "title": "资深后端工程师",
+    "age": 32,
     "experience": "8年",
     "skills": ["Java", "Spring Boot", "MySQL", "Redis", "Kafka"],
     "location": "上海",
@@ -24,6 +26,7 @@
   {
     "name": "王五",
     "title": "UI/UX设计师",
+    "age": 26,
     "experience": "3年",
     "skills": ["Figma", "Sketch", "Adobe XD", "Prototyping"],
     "location": "深圳",

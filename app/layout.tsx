@@ -82,23 +82,16 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <LanguageProvider>
-          {user ? (
-            // Authenticated layout - show sidebar and header
-            <div className="flex min-h-screen">
-              <SimpleSidebar />
-              <div className="flex flex-col flex-1 ml-16">
-                <Header user={user} />
-                <main className="flex flex-1">
-                  <ArtifactRoot>{children}</ArtifactRoot>
-                </main>
-              </div>
+          {/* Always show sidebar and header layout */}
+          <div className="flex min-h-screen">
+            <SimpleSidebar />
+            <div className="flex flex-col flex-1 ml-16">
+              {user && <Header user={user} />}
+              <main className="flex flex-1">
+                <ArtifactRoot>{children}</ArtifactRoot>
+              </main>
             </div>
-          ) : (
-            // Unauthenticated layout - full screen without sidebar/header
-            <div className="min-h-screen">
-              {children}
-            </div>
-          )}
+          </div>
           <Toaster />
           <Analytics />
           </LanguageProvider>

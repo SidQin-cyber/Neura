@@ -5,10 +5,6 @@ import { Badge } from '@/components/ui/badge'
 import { JobSearchResult } from '@/lib/context/search-context'
 import {
   Building,
-  Calendar,
-  DollarSign,
-  MapPin,
-  TrendingUp,
 } from 'lucide-react'
 
 interface JobCardProps {
@@ -35,67 +31,142 @@ export function JobCard({
     return 'bg-red-100 text-red-800'
   }
 
+  // 🎨 Neura Score 边框粗细分级设计 - 五档评分体系
+  const getMatchScoreStyle = (score: number) => {
+    // 统一使用深紫色文字保证可读性
+    const baseTextColor = 'text-purple-700'
+    const numberTextColor = 'text-purple-800'
+    
+    if (score >= 80) {
+      // 🏆 优秀等级 (80+): 粗边框 2px
+      return {
+        classes: 'bg-white border-2 border-purple-500 text-purple-700 shadow-md hover:border-purple-600 hover:shadow-lg ring-1 ring-purple-500/20',
+        textColor: numberTextColor
+      }
+    }
+    if (score >= 60) {
+      // 🎯 良好等级 (60-79): 中等边框 1.5px  
+      return {
+        classes: 'bg-white border-[1.5px] border-purple-400 text-purple-700 shadow-sm hover:border-purple-500 hover:shadow-md ring-1 ring-purple-400/15',
+        textColor: numberTextColor
+      }
+    }
+    if (score >= 40) {
+      // 📊 一般等级 (40-59): 细边框 1px
+      return {
+        classes: 'bg-white border border-purple-300 text-purple-700 shadow-sm hover:border-purple-400 hover:shadow-md ring-1 ring-purple-300/10',
+        textColor: numberTextColor
+      }
+    }
+    if (score >= 20) {
+      // 🔸 较低等级 (20-39): 最细边框 0.5px
+      return {
+        classes: 'bg-white border-[0.5px] border-purple-200 text-purple-700 shadow-sm hover:border-purple-300 ring-1 ring-purple-200/5',
+        textColor: numberTextColor
+      }
+    }
+    // 🔹 最低等级 (0-19): 无边框
+    return {
+      classes: 'bg-gray-50 text-purple-700 shadow-sm hover:bg-gray-100',
+      textColor: numberTextColor
+    }
+  }
+
+  const jobMatchScore = job.match_score || 0
+
   if (simplified) {
+    // 🎯 构建基础要求信息（经验和学历）
+    const buildBasicRequirements = () => {
+      const requirements = []
+      
+      // 经验要求
+      if (job.experience_required) {
+        requirements.push(`${job.experience_required}年经验`)
+      }
+      
+      // 学历要求（如果API返回的数据中有此字段）
+      if ((job as any).education_required) {
+        requirements.push((job as any).education_required)
+      }
+      
+      return requirements.filter(Boolean).join(' / ')
+    }
+
+    // 🎯 获取核心技能（前5个最重要的）
+    const getCoreSkills = () => {
+      if (job.skills_required && job.skills_required.length > 0) {
+        return job.skills_required.slice(0, 5)
+      }
+      return []
+    }
+
     return (
-      <div className="bg-white rounded-xl px-4 py-3 shadow-[0_4px_12px_rgba(0,0,0,0.06)] cursor-pointer -ml-8">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-[#333] text-lg leading-tight truncate">{job.title}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <Building className="h-4 w-4 text-[#666] flex-shrink-0" />
-              <p className="text-[#666] text-sm font-medium truncate">{job.company}</p>
+      <div className="group relative bg-white rounded-2xl border border-gray-200/60 shadow-sm hover:shadow-md hover:border-gray-300/60 transition-all duration-300 ease-out w-full" style={{ maxWidth: '645px', marginLeft: '-12px' }}>
+        <div className="p-6 space-y-4">
+          {/* Line 1: Company Name (bold, top-left) + Neura Score (right-aligned badge) */}
+          <div className="flex items-start justify-between gap-4">
+            <h3 className="font-bold text-gray-900 text-lg leading-6 flex-1 min-w-0">
+              {job.company}
+            </h3>
+            <div className={`
+              inline-flex items-center gap-1.5
+              px-3 py-1.5
+              ${getMatchScoreStyle(jobMatchScore).classes}
+              rounded-full
+              transition-all duration-200 ease-out
+              cursor-default
+              flex-shrink-0
+            `}>
+              <span className="text-xs font-medium">Neura Score</span>
+              <span className={`text-sm font-bold ${getMatchScoreStyle(jobMatchScore).textColor}`}>
+                {jobMatchScore}%
+              </span>
             </div>
           </div>
-          <Badge className="bg-green-500 text-white px-3 py-1 text-sm font-medium flex-shrink-0 flex items-center gap-1 self-start sm:self-auto">
-            <TrendingUp className="h-3 w-3" />
-            {job.match_score || 0}%
-          </Badge>
-        </div>
 
-        {/* 基本信息 */}
-        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-[#666]">
-          {job.location && (
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4" />
-              <span>{job.location}</span>
-            </div>
-          )}
-          {job.experience_required && (
-            <div className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4" />
-              <span>{job.experience_required}</span>
-            </div>
-          )}
-          {job.salary_range && (
-            <div className="flex items-center gap-1.5">
-              <DollarSign className="h-4 w-4" />
-              <span>{job.salary_range}</span>
-            </div>
-          )}
-        </div>
-
-        {/* 技能要求 */}
-        {job.skills_required && job.skills_required.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {job.skills_required.slice(0, 3).map((skill, index) => (
-              <span key={index} className="bg-[#F3F4F6] text-[#333] px-3 py-1 rounded-full text-sm">
-                {skill}
-              </span>
-            ))}
-            {job.skills_required.length > 3 && (
-              <span className="bg-[#F3F4F6] text-[#666] px-3 py-1 rounded-full text-sm">
-                +{job.skills_required.length - 3}
-              </span>
+          {/* Line 2: Job Title + Location (smaller, show search relevance) */}
+          <div className="flex items-center gap-2">
+            <span className="text-gray-700 font-semibold text-base leading-6">
+              {job.title}
+            </span>
+            {job.location && (
+              <>
+                <span className="text-gray-400 text-sm">·</span>
+                <span className="text-gray-500 text-base leading-6">
+                  {job.location}
+                </span>
+              </>
             )}
           </div>
-        )}
 
-        {/* 职位描述 */}
-        {job.description && (
-          <p className="text-[#333] text-sm mt-2 leading-relaxed line-clamp-2">
-            {job.description}
-          </p>
-        )}
+          {/* Line 3: Experience / Degree / Skills (small and secondary) */}
+          <div className="space-y-3">
+            {/* 基础要求：经验和学历 */}
+            {buildBasicRequirements() && (
+              <div className="text-gray-500 text-sm leading-5 font-medium">
+                {buildBasicRequirements()}
+              </div>
+            )}
+            
+            {/* 核心技能：胶囊形式 */}
+            {getCoreSkills().length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {getCoreSkills().map((skill, index) => (
+                  <span 
+                    key={index}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all duration-200 ease-out border border-gray-200/50"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            ) : !buildBasicRequirements() && (
+              <div className="text-gray-500 text-sm leading-5 font-medium">
+                详情请查看职位描述
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     )
   }
@@ -118,8 +189,8 @@ export function JobCard({
                 <span className="font-medium">{job.company}</span>
               </div>
             </div>
-            <Badge className={getSimilarityColor(job.match_score ? job.match_score / 100 : 0)}>
-              匹配度 {job.match_score || 0}%
+            <Badge className={getMatchScoreStyle(jobMatchScore).classes}>
+              Neura Score {jobMatchScore}%
             </Badge>
           </div>
           

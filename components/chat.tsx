@@ -124,8 +124,24 @@ export function Chat({
         // If the last message is from user, find the corresponding section
         const sectionId = lastMessage.id
         requestAnimationFrame(() => {
+          const scrollContainer = scrollContainerRef.current
           const sectionElement = document.getElementById(`section-${sectionId}`)
-          sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          
+          if (scrollContainer && sectionElement) {
+            // 获取section在滚动容器中的位置
+            const containerRect = scrollContainer.getBoundingClientRect()
+            const sectionRect = sectionElement.getBoundingClientRect()
+            const scrollTop = scrollContainer.scrollTop
+            
+            // 计算section相对于滚动容器内容的位置
+            const sectionOffsetTop = sectionRect.top - containerRect.top + scrollTop
+            
+            // 滚动到section位置
+            scrollContainer.scrollTo({
+              top: sectionOffsetTop - 20, // 留一些顶部间距
+              behavior: 'smooth'
+            })
+          }
         })
       }
     }
@@ -207,34 +223,40 @@ export function Chat({
       )}
       data-testid="full-chat"
     >
-      <ChatMessages
-        sections={sections}
-        data={data}
-        onQuerySelect={onQuerySelect}
-        isLoading={isLoading}
-        chatId={id}
-        addToolResult={addToolResult}
-        scrollContainerRef={scrollContainerRef}
-        onUpdateMessage={handleUpdateAndReloadMessage}
-        reload={handleReloadFrom}
-      />
-      {/* 固定底部输入框 - 与主页面保持一致 */}
-      <div className="w-full">
-        <ChatPanel
-          input={input}
-          handleInputChange={handleInputChange}
-          handleSubmit={onSubmit}
+      {/* 主内容区域 - 确保滚动容器有正确的高度和边界 */}
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto pb-32"
+        style={{ height: '100%' }}
+      >
+        <ChatMessages
+          sections={sections}
+          data={data}
+          onQuerySelect={onQuerySelect}
           isLoading={isLoading}
-          messages={messages}
-          setMessages={setMessages}
-          stop={stop}
-          query={query}
-          append={append}
-          models={models}
-          showScrollToBottomButton={!isAtBottom}
+          chatId={id}
+          addToolResult={addToolResult}
           scrollContainerRef={scrollContainerRef}
+          onUpdateMessage={handleUpdateAndReloadMessage}
+          reload={handleReloadFrom}
         />
       </div>
+      
+      {/* ChatPanel 现在是固定在底部的，不再需要在这里包装 */}
+      <ChatPanel
+        input={input}
+        handleInputChange={handleInputChange}
+        handleSubmit={onSubmit}
+        isLoading={isLoading}
+        messages={messages}
+        setMessages={setMessages}
+        stop={stop}
+        query={query}
+        append={append}
+        models={models}
+        showScrollToBottomButton={!isAtBottom}
+        scrollContainerRef={scrollContainerRef}
+      />
     </div>
   )
 }

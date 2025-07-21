@@ -44,7 +44,8 @@ export async function updateSession(request: NextRequest) {
     '/login', // Login page
     '/register', // Register page
     '/api/auth', // Auth API routes
-    '/api/debug' // Debug API routes
+    '/api/debug', // Debug API routes
+    '/api/parse-query' // Query parsing API
   ]
 
   const pathname = request.nextUrl.pathname

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { generateEmbedding, createJobEmbeddingText } from '@/lib/embedding/openai-embedding'
+import { normalizeTextWithCache, validateNormalizedText } from '@/lib/embedding/text-normalizer'
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,19 +55,42 @@ export async function POST(request: NextRequest) {
         requirements: item.requirements || null,
         benefits: item.benefits || null,
         skills_required: Array.isArray(item.skills_required) ? item.skills_required : (Array.isArray(item.skills) ? item.skills : []),
+        job_summary: item.job_summary || null,
         experience_required: item.experience_required || item.experience || null,
         education_required: item.education_required || item.education || null,
         industry: item.industry || null,
         department: item.department || null,
+        team_info: item.team_info || null,
+        growth_opportunities: Array.isArray(item.growth_opportunities) ? item.growth_opportunities : null,
+        work_environment: item.work_environment || null,
+        company_culture: item.company_culture || null,
+        remote_policy: item.remote_policy || null,
+        interview_process: item.interview_process || null,
+        contact_info: item.contact_info || null,
+        urgency_level: item.urgency_level || 'normal',
+        expected_start_date: item.expected_start_date || null,
         status: 'active'
       }
       
       // 生成向量化文本
-      const embeddingText = createJobEmbeddingText(jobItem)
-      console.log(`生成职位 ${jobItem.title} 的向量化文本:`, embeddingText)
+      const rawEmbeddingText = createJobEmbeddingText(jobItem)
+      console.log(`生成职位 ${jobItem.title} 的原始向量化文本:`, rawEmbeddingText)
+      
+      // 标准化文本（词典 + LLM）
+      const normalizedText = await normalizeTextWithCache(rawEmbeddingText)
+      console.log(`职位 ${jobItem.title} 标准化后文本:`, normalizedText)
+      
+      // 验证标准化结果
+      const validation = validateNormalizedText(normalizedText)
+      if (!validation.isValid) {
+        console.error(`❌ 职位 ${jobItem.title} 文本标准化验证失败:`, validation.errors)
+        return NextResponse.json({ 
+          error: `职位 ${jobItem.title} 数据标准化失败: ${validation.errors.join(', ')}` 
+        }, { status: 400 })
+      }
       
       // 生成向量化
-      const embedding = await generateEmbedding(embeddingText)
+      const embedding = await generateEmbedding(normalizedText)
       if (embedding) {
         // 添加详细的调试信息
         console.log(`🔍 ${jobItem.title} embedding原始格式:`, {
@@ -101,7 +125,7 @@ export async function POST(request: NextRequest) {
         embeddingStrLength: JSON.stringify(item.embedding).length
       })
       
-      // ✅ 使用直接插入替代 RPC 函数调用
+      // ✅ 使用直接插入，支持所有字段包括增强字段
       const { data, error } = await supabase
         .from('jobs')
         .insert({
@@ -117,10 +141,20 @@ export async function POST(request: NextRequest) {
           requirements: item.requirements || null,
           benefits: item.benefits || null,
           skills_required: item.skills_required || [],
+          job_summary: item.job_summary || null,
           experience_required: item.experience_required || null,
           education_required: item.education_required || null,
           industry: item.industry || null,
           department: item.department || null,
+          team_info: item.team_info || null,
+          growth_opportunities: item.growth_opportunities || null,
+          work_environment: item.work_environment || null,
+          company_culture: item.company_culture || null,
+          remote_policy: item.remote_policy || null,
+          interview_process: item.interview_process || null,
+          contact_info: item.contact_info || null,
+          urgency_level: item.urgency_level || 'normal',
+          expected_start_date: item.expected_start_date || null,
           status: item.status || 'active',
           embedding: `[${item.embedding.join(',')}]`
         })

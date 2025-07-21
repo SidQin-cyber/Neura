@@ -25,6 +25,34 @@
   .cursor-blink {
     animation: cursorBlink 1.2s ease-in-out infinite;
   }
+
+  /* 增强文本输入光标可见性 */
+  .enhanced-cursor {
+    caret-color: #374151;
+  }
+  
+  .enhanced-cursor:focus {
+    caret-color: #1f2937;
+    outline: none;
+    border: none;
+  }
+
+  /* 底部固定输入框的平滑高度变化 */
+  .bottom-fixed-textarea {
+    transition: height 0.2s ease-out;
+  }
+
+  /* 输入框容器的向上扩展动画 */
+  .input-container-expand {
+    transition: all 0.2s ease-out;
+  }
+
+  /* 强制文本换行，防止内容溢出 */
+  .overflow-wrap-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    hyphens: auto;
+  }
 }
 
 @keyframes fadeInUp {
@@ -57,6 +85,34 @@
   100% {
     transform: translateX(400%);
     opacity: 0;
+  }
+}
+
+@keyframes sparkle-shimmer {
+  0% {
+    transform: translateX(-150%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes sparkle-breathing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4);
+    border-color: rgba(147, 51, 234, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(147, 51, 234, 0);
+    border-color: rgba(147, 51, 234, 0.6);
   }
 }
 

@@ -1,60 +1,250 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { generateEmbedding } from '@/lib/embedding/openai-embedding'
+import { normalizeTextWithCache } from '@/lib/embedding/text-normalizer'
 
-// Type definitions for the reranking process
-interface CandidateResult {
+// 混合搜索分数归一化接口
+interface SearchCandidate {
   id: string
   name: string
-  email?: string
-  phone?: string
-  current_title?: string
-  current_company?: string
-  location?: string
-  years_of_experience?: number
+  email: string
+  phone: string
+  current_title: string
+  current_company: string
+  location: string
+  years_of_experience: number
   expected_salary_min?: number
   expected_salary_max?: number
-  skills?: string[]
-  education?: any
-  experience?: any
-  certifications?: any
-  languages?: any
-  file_url?: string
+  skills: string[]
+  education: any
+  experience: any
+  certifications: any
+  languages: any
   status: string
-  created_at: string
-  updated_at: string
-  similarity: number
-  fts_rank: number
-  combined_score: number
-  full_text_content: string
+  similarity: number        // 向量相似度 [0, 1]
+  fts_rank: number         // FTS相关性分数 [0, +∞]
+  combined_score?: number  // 数据库原始组合分数（仅参考）
+  // 🔥 增强版函数新增字段
+  match_strategy?: string  // 匹配策略（PGroonga全文搜索、公司名匹配等）
+  debug_info?: string      // 调试信息
 }
 
-interface RerankRequest {
-  inputs: {
-    source_sentence: string
-    sentences: string[]
-  }
+interface NormalizedSearchResult extends SearchCandidate {
+  normalized_vector_score: number     // 归一化后的向量分数 [0, 1]
+  normalized_fts_score: number       // 归一化后的FTS分数 [0, 1]
+  final_score: number                // 最终混合分数 [0, 1]
+  match_score: number                // 前端期望的百分比 [0, 100]
 }
 
-interface StreamChunk {
-  type: 'meta' | 'chunk' | 'complete' | 'error'
-  data?: any
-  chunk_info?: {
-    chunk_number: number
-    total_chunks: number
-    candidates_in_chunk: number
-    is_final: boolean
+// Min-Max 归一化函数
+function minMaxNormalize(values: number[]): number[] {
+  if (values.length === 0) return []
+  
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  
+  // 如果所有值相同，返回全1数组
+  if (max === min) {
+    return values.map(() => 1.0)
   }
-  total?: number
-  processed?: number
-  phase?: string
-  pipeline_summary?: {
-    recall_count: number
-    rerank_count: number
-    top_score: number
-    chunks_delivered: number
+  
+  return values.map(value => (value - min) / (max - min))
+}
+
+// 混合搜索分数归一化与加权组合
+function normalizeAndCombineScores(
+  candidates: SearchCandidate[],
+  alpha: number = 0.7  // 向量权重，推荐默认值0.7
+): NormalizedSearchResult[] {
+  if (candidates.length === 0) return []
+  
+  console.log(`🎯 开始分数归一化，候选人数量: ${candidates.length}, α权重: ${alpha}`)
+  
+  // Step 1: 提取原始分数
+  const vectorScores = candidates.map(c => c.similarity)
+  const ftsScores = candidates.map(c => c.fts_rank)
+  
+  console.log(`📊 原始分数范围:`)
+  console.log(`  - 向量分数: [${Math.min(...vectorScores).toFixed(4)}, ${Math.max(...vectorScores).toFixed(4)}]`)
+  console.log(`  - FTS分数: [${Math.min(...ftsScores).toFixed(4)}, ${Math.max(...ftsScores).toFixed(4)}]`)
+  
+  // Step 2: Min-Max 归一化
+  const normalizedVectorScores = minMaxNormalize(vectorScores)
+  const normalizedFtsScores = minMaxNormalize(ftsScores)
+  
+  console.log(`✨ 归一化后范围:`)
+  console.log(`  - 归一化向量分数: [${Math.min(...normalizedVectorScores).toFixed(4)}, ${Math.max(...normalizedVectorScores).toFixed(4)}]`)
+  console.log(`  - 归一化FTS分数: [${Math.min(...normalizedFtsScores).toFixed(4)}, ${Math.max(...normalizedFtsScores).toFixed(4)}]`)
+  
+  // Step 3: 加权组合计算最终分数
+  const results: NormalizedSearchResult[] = candidates.map((candidate, index) => {
+    const normalizedVectorScore = normalizedVectorScores[index]
+    const normalizedFtsScore = normalizedFtsScores[index]
+    
+    // 最终公式: Final Score = (α × Normalized_Vector_Score) + ((1-α) × Normalized_FTS_Score)
+    const finalScore = (alpha * normalizedVectorScore) + ((1 - alpha) * normalizedFtsScore)
+    
+    return {
+      ...candidate,
+      normalized_vector_score: normalizedVectorScore,
+      normalized_fts_score: normalizedFtsScore,
+      final_score: finalScore,
+      match_score: Math.round(finalScore * 100), // 转换为百分比
+      // 🔥 确保包含增强版函数的调试字段
+      match_strategy: candidate.match_strategy || '未知策略',
+      debug_info: candidate.debug_info || '无调试信息',
+      full_text_content: `${candidate.name} ${candidate.current_title} ${candidate.current_company} ${candidate.location}`
+    }
+  })
+  
+  // 按最终分数降序排序
+  results.sort((a, b) => b.final_score - a.final_score)
+  
+  console.log(`🏆 Top 3 最终分数:`)
+  results.slice(0, 3).forEach((result, index) => {
+    console.log(`  ${index + 1}. ${result.name}: 最终分数=${result.final_score.toFixed(4)} (向量=${result.normalized_vector_score.toFixed(4)}, FTS=${result.normalized_fts_score.toFixed(4)})`)
+  })
+  
+  return results
+}
+
+// 混合搜索主函数
+async function hybridSearchCandidates(
+  supabase: any,
+  query: string,
+  queryEmbedding: number[],
+  userId: string,
+  filters: any = {},
+  alpha: number = 0.7,
+  maxResults: number = 100
+): Promise<NormalizedSearchResult[]> {
+  console.log('🔄 执行混合搜索（数据库RPC + 后端归一化）...')
+  
+  const queryEmbeddingStr = `[${queryEmbedding.join(',')}]`
+  
+  // 构建RPC调用参数
+  const rpcParams = {
+    query_embedding: queryEmbeddingStr,
+    query_text: query,  // 用于FTS搜索
+    similarity_threshold: 0.01,  // 低阈值确保充分召回
+    match_count: Math.min(maxResults * 2, 200), // 召回更多候选人用于归一化
+    location_filter: filters.location?.[0] || null,
+    experience_min: filters.experience_min || null,
+    experience_max: filters.experience_max || null,
+    salary_min: filters.salary_min || null,
+    salary_max: filters.salary_max || null,
+    skills_filter: filters.skills || null,
+    status_filter: 'active',
+    user_id_param: userId,
+    fts_weight: 0.5,    // 数据库内部权重（后续会被归一化覆盖）
+    vector_weight: 0.5  // 数据库内部权重（后续会被归一化覆盖）
   }
-  error?: string
+  
+  console.log('📞 调用数据库RPC函数: search_candidates_with_pgroonga_enhanced (启用增强版PGroonga中文搜索)')
+  
+  // 🔥 为增强版函数准备正确的参数
+  const enhancedParams = {
+    search_query: query,
+    query_embedding: queryEmbeddingStr,
+    similarity_threshold: rpcParams.similarity_threshold,
+    match_count: rpcParams.match_count,
+    user_id_param: userId
+  }
+  
+  console.log('🎯 增强版函数参数:', enhancedParams)
+  
+  // 🔥 调用增强版搜索函数
+  const { data: rawResults, error } = await supabase.rpc('search_candidates_with_pgroonga_enhanced', enhancedParams)
+  
+  if (error) {
+    console.error('❌ 数据库混合搜索失败:', error)
+    throw new Error(`数据库搜索失败: ${error.message}`)
+  }
+  
+  if (!rawResults || rawResults.length === 0) {
+    console.log('📭 数据库返回空结果')
+    return []
+  }
+  
+  console.log(`📊 数据库返回 ${rawResults.length} 个原始结果`)
+  console.log('🔍 原始结果样本:', rawResults.slice(0, 2).map((r: any) => ({
+    name: r.name,
+    similarity: r.similarity,
+    fts_rank: r.fts_rank,
+    combined_score: r.combined_score
+  })))
+  
+  // 执行分数归一化和加权组合
+  const normalizedResults = normalizeAndCombineScores(rawResults, alpha)
+  
+  // 返回最终结果
+  return normalizedResults.slice(0, maxResults)
+}
+
+// 混合搜索职位函数（类似实现）
+async function hybridSearchJobs(
+  supabase: any,
+  query: string,
+  queryEmbedding: number[],
+  filters: any = {},
+  alpha: number = 0.7,
+  maxResults: number = 100
+): Promise<any[]> {
+  console.log('🔄 执行职位混合搜索...')
+  
+  const queryEmbeddingStr = `[${queryEmbedding.join(',')}]`
+  
+  const rpcParams = {
+    query_embedding: queryEmbeddingStr,
+    query_text: query,
+    similarity_threshold: 0.01,
+    match_count: Math.min(maxResults * 2, 200),
+    location_filter: filters.location?.[0] || null,
+    experience_min: filters.experience_min || null,
+    experience_max: filters.experience_max || null,
+    salary_min_filter: filters.salary_min || null,
+    salary_max_filter: filters.salary_max || null,
+    skills_filter: filters.skills || null,
+    status_filter: 'active',
+    user_id_param: null, // 职位搜索不限制用户
+    fts_weight: 0.5,
+    vector_weight: 0.5
+  }
+  
+  const { data: rawResults, error } = await supabase.rpc('search_jobs_with_pgroonga', rpcParams)
+  
+  if (error) {
+    console.error('❌ 职位混合搜索失败:', error)
+    throw new Error(`职位搜索失败: ${error.message}`)
+  }
+  
+  if (!rawResults || rawResults.length === 0) {
+    return []
+  }
+  
+  // 对职位结果也进行归一化处理
+  const vectorScores = rawResults.map((r: any) => r.similarity)
+  const ftsScores = rawResults.map((r: any) => r.fts_rank)
+  
+  const normalizedVectorScores = minMaxNormalize(vectorScores)
+  const normalizedFtsScores = minMaxNormalize(ftsScores)
+  
+  const results = rawResults.map((job: any, index: number) => {
+    const normalizedVectorScore = normalizedVectorScores[index]
+    const normalizedFtsScore = normalizedFtsScores[index]
+    const finalScore = (alpha * normalizedVectorScore) + ((1 - alpha) * normalizedFtsScore)
+    
+    return {
+      ...job,
+      normalized_vector_score: normalizedVectorScore,
+      normalized_fts_score: normalizedFtsScore,
+      final_score: finalScore,
+      match_score: Math.round(finalScore * 100),
+      full_text_content: `${job.title} ${job.company} ${job.location} ${job.description || ''}`
+    }
+  })
+  
+     return results.sort((a: any, b: any) => b.final_score - a.final_score).slice(0, maxResults)
 }
 
 export async function POST(request: NextRequest) {
@@ -85,921 +275,126 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Only handle candidates mode for now (jobs can be added later)
-    if (mode !== 'candidates') {
+    // Support both candidates and jobs mode
+    if (mode !== 'candidates' && mode !== 'jobs') {
       return NextResponse.json(
-        { success: false, error: 'Only candidates mode is currently supported for reranking' },
+        { success: false, error: 'Only candidates and jobs modes are currently supported' },
         { status: 400 }
       )
     }
+
+    // 🎯 使用固定的最优权重配置
+    const vectorWeight = 0.65 // 固定值：65%向量权重 + 35%FTS权重
+
+    console.log(`🎯 混合搜索配置: α=${vectorWeight} (${Math.round(vectorWeight*100)}%向量 + ${Math.round((1-vectorWeight)*100)}%FTS)`)
 
     // Set up streaming response
     const encoder = new TextEncoder()
     const { readable, writable } = new TransformStream()
     const writer = writable.getWriter()
 
-    // Async function to handle the recall-rerank pipeline
-    const processSearchPipeline = async () => {
+    // 混合搜索处理流程
+    const processHybridSearch = async () => {
       try {
-        // 🎯 PHASE 1: RECALL STAGE
-        console.log('🔍 Phase 1: Starting recall stage...')
+        console.log('🚀 开始混合搜索流程（FTS + 向量 + 归一化）...')
+        console.log('📝 原始查询:', query)
         
-        // Generate query embedding
-        console.log('生成查询向量:', query)
-        const queryEmbedding = await generateEmbedding(query)
+        // Step 1: 文本标准化 + 向量生成
+        console.log('🎯 对查询进行标准化...')
+        const normalizedQuery = await normalizeTextWithCache(query)
+        console.log('✨ 标准化后文本:', normalizedQuery.substring(0, 100) + '...')
         
+        const queryEmbedding = await generateEmbedding(normalizedQuery)
         if (!queryEmbedding) {
           await writer.write(encoder.encode(JSON.stringify({
             type: 'error',
             error: '无法生成查询向量'
           }) + '\n'))
           return
-    }
-    
-    console.log('查询向量生成成功，维度:', queryEmbedding.length)
-    
-        // Convert query embedding to string format
-    const queryEmbeddingStr = `[${queryEmbedding.join(',')}]`
-    
-        // Parse filters
-    const parseSalaryFilter = (salaryStr?: string) => {
-      if (!salaryStr) return { min: null, max: null }
-      const parts = salaryStr.split('-')
-      return {
-        min: parts[0] ? parseInt(parts[0]) : null,
-        max: parts[1] ? parseInt(parts[1]) : null
-      }
-    }
-    
-    const salary = parseSalaryFilter(filters?.salary)
-    const experienceFilter = filters?.experience ? parseInt(filters.experience) : null
-    
-        // 🚀 Enhanced search parameters for recall (up to 100 candidates)
-      const searchParams = {
-        query_embedding: queryEmbeddingStr,
-          query_text: query,
-          similarity_threshold: 0.05, // Lower threshold for broader recall
-          match_count: 100, // Increased for better recall
-        location_filter: filters?.location || null,
-        experience_min: experienceFilter,
-        experience_max: experienceFilter ? experienceFilter + 2 : null,
-        salary_min: salary.min,
-        salary_max: salary.max,
-        skills_filter: filters?.skills || [],
-        status_filter: 'active',
-          user_id_param: user.id,
-        fts_weight: 0.3,
-        vector_weight: 0.7
-      }
-      
-        console.log('🔍 Calling Supabase RPC for recall with params:', {
-        similarity_threshold: searchParams.similarity_threshold,
-          match_count: searchParams.match_count,
-        location_filter: searchParams.location_filter,
-        experience_min: searchParams.experience_min,
-        experience_max: searchParams.experience_max,
-        salary_min: searchParams.salary_min,
-        salary_max: searchParams.salary_max,
-        skills_filter: searchParams.skills_filter,
-        status_filter: searchParams.status_filter
-      })
-      
-        const { data: recallResults, error: recallError } = await supabase.rpc('search_candidates_rpc', searchParams)
-        
-        if (recallError) {
-          console.error('❌ Recall stage error:', recallError)
-          await writer.write(encoder.encode(JSON.stringify({
-            type: 'error',
-            error: recallError.message
-          }) + '\n'))
-          return
         }
         
-        const candidates: CandidateResult[] = recallResults || []
-        console.log(`✅ Recall stage completed: ${candidates.length} candidates retrieved`)
+        console.log('✅ 查询向量生成成功，维度:', queryEmbedding.length)
+
+        // Step 2: 执行混合搜索（数据库RPC + 后端归一化）
+        let results = []
         
-        // Send initial metadata
+        if (mode === 'candidates') {
+          results = await hybridSearchCandidates(
+            supabase,
+            query, // 原始查询用于FTS
+            queryEmbedding,
+            user.id,
+            filters,
+            vectorWeight, // α权重
+            100  // max results
+          )
+        } else {
+          results = await hybridSearchJobs(
+            supabase,
+            query,
+            queryEmbedding,
+            filters,
+            vectorWeight,
+            100
+          )
+        }
+
+        console.log(`✅ 混合搜索完成: ${results.length} 个最终结果`)
+        
+        // 输出搜索质量报告
+        if (results.length > 0) {
+          const avgFinalScore = results.reduce((sum, r) => sum + r.final_score, 0) / results.length
+          const topScore = results[0]?.final_score || 0
+          console.log(`📈 搜索质量报告:`)
+          console.log(`  - 最高分数: ${topScore.toFixed(4)}`)
+          console.log(`  - 平均分数: ${avgFinalScore.toFixed(4)}`)
+          console.log(`  - 权重配置: ${Math.round(vectorWeight*100)}%向量 + ${Math.round((1-vectorWeight)*100)}%FTS`)
+        }
+
+        // Step 3: 流式返回结果
         await writer.write(encoder.encode(JSON.stringify({
-          type: 'meta',
-          total: candidates.length,
-          phase: 'recall_complete'
-        }) + '\n'))
-
-        if (candidates.length === 0) {
-          await writer.write(encoder.encode(JSON.stringify({
-            type: 'complete',
-            pipeline_summary: {
-              recall_count: 0,
-              rerank_count: 0,
-              top_score: 0,
-              chunks_delivered: 0
-            }
-          }) + '\n'))
-          return
-        }
-
-        // 🎯 PHASE 2: RERANK STAGE
-        console.log('🧠 Phase 2: Starting rerank stage...')
-        
-        // Prepare full text content for each candidate
-        const candidatesWithFullText = candidates.map(candidate => {
-          const fullTextParts = [
-            candidate.name,
-            candidate.current_title,
-            candidate.current_company,
-            candidate.location,
-            candidate.years_of_experience ? `${candidate.years_of_experience} years experience` : null,
-            candidate.skills ? candidate.skills.join(', ') : null,
-            candidate.education ? JSON.stringify(candidate.education) : null,
-            candidate.experience ? JSON.stringify(candidate.experience) : null,
-            candidate.certifications ? JSON.stringify(candidate.certifications) : null,
-            candidate.languages ? JSON.stringify(candidate.languages) : null
-          ].filter(Boolean)
-          
-          return {
-            ...candidate,
-            full_text_content: fullTextParts.join(' | ')
-          }
-        })
-        
-        // Check if reranking configuration is available
-        const rerankerEndpoint = process.env.RERANKER_ENDPOINT_URL
-        const hfApiKey = process.env.HF_API_KEY
-        
-        if (!rerankerEndpoint || !hfApiKey) {
-          console.log('⚠️ Reranking configuration missing, falling back to vector-only results...')
-          
-          // Stream the results without reranking using chunked delivery (应用相同的分数优化)
-          const finalCandidates = candidatesWithFullText.map((candidate, index) => {
-            const normalizedSimilarity = Math.max(0, Math.min(1, candidate.combined_score || 0.5))
-            
-            // 应用与重排版本相同的语义加分逻辑
-            const titleLower = candidate.current_title?.toLowerCase() || ''
-            const titleMatch = titleLower.includes('后端') ||
-                              titleLower.includes('backend') ||
-                              titleLower.includes('server') ||
-                              titleLower.includes('golang') ||
-                              titleLower.includes('java') ||
-                              titleLower.includes('python') ? 0.3 : 0
-            
-            const skillsMatch = candidate.skills?.some(skill => 
-              ['golang', 'java', 'python', 'node.js', 'c++', 'c#', 'rust', 'mysql', 'redis', 'mongodb', 'postgresql'].some(backend_skill => 
-                skill.toLowerCase().includes(backend_skill)
-              )) ? 0.2 : 0
-            
-            const semanticBonus = titleMatch + skillsMatch
-            const finalScore = (normalizedSimilarity * 0.7) + (semanticBonus * 0.3) // 无重排时，向量权重更高
-            
-            // 相同的用户友好显示分数
-            let displayScore
-            if (finalScore >= 0.8) displayScore = Math.round(85 + (finalScore - 0.8) * 75)
-            else if (finalScore >= 0.6) displayScore = Math.round(70 + (finalScore - 0.6) * 75)
-            else if (finalScore >= 0.4) displayScore = Math.round(55 + (finalScore - 0.4) * 75)
-            else if (finalScore >= 0.2) displayScore = Math.round(40 + (finalScore - 0.2) * 75)
-            else displayScore = Math.round(25 + finalScore * 75)
-            
-            return {
-              ...candidate,
-              search_score: candidate.combined_score || 0.5,
-              rerank_score: null,
-              normalized_similarity: normalizedSimilarity,
-              title_match_bonus: titleMatch,
-              skills_match_bonus: skillsMatch,
-              semantic_bonus: semanticBonus,
-              final_score: finalScore,
-              display_score: displayScore,
-              rank: index + 1
-            }
-          })
-
-          // Inline chunked streaming delivery
-          const startTime = Date.now()
-          const totalCandidates = finalCandidates.length
-
-          // Format candidate function (fallback版本)
-          const formatCandidate = (candidate: any) => ({
-            id: candidate.id,
-            name: candidate.name,
-            current_title: candidate.current_title,
-            current_company: candidate.current_company,
-            location: candidate.location,
-            years_of_experience: candidate.years_of_experience,
-            expected_salary_min: candidate.expected_salary_min,
-            expected_salary_max: candidate.expected_salary_max,
-            skills: candidate.skills,
-            match_score: candidate.display_score || Math.round(candidate.final_score * 100),
-            search_score: candidate.search_score,
-            rerank_score: candidate.rerank_score,
-            normalized_similarity: candidate.normalized_similarity,
-            final_score: candidate.final_score,
-            display_score: candidate.display_score,
-            rank: candidate.rank
-          })
-
-          // 📦 CHUNK 1: IMMEDIATE TOP 5 CANDIDATES
-          const firstChunkSize = Math.min(5, totalCandidates)
-          const firstChunk = finalCandidates.slice(0, firstChunkSize)
-
-          console.log(`📦 Sending first chunk: top ${firstChunk.length} candidates (1-${firstChunkSize})`)
-
-          const formattedFirstChunk = firstChunk.map(formatCandidate)
-
-          await writer.write(encoder.encode(JSON.stringify({
-            type: 'chunk',
-            data: formattedFirstChunk,
-            chunk_info: {
-              chunk_number: 1,
-              total_chunks: totalCandidates <= 5 ? 1 : totalCandidates <= 20 ? 2 : 3,
-              candidates_in_chunk: firstChunk.length,
-              is_final: totalCandidates <= 5
-            }
-          }) + '\n'))
-
-          // Send more chunks if needed
-          if (totalCandidates > 5) {
-            const remainingCandidates = finalCandidates.slice(5)
-
-            // Small delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 50))
-
-            // 📦 CHUNK 2: NEXT 15 CANDIDATES
-            const secondChunkSize = Math.min(15, remainingCandidates.length)
-            const secondChunk = remainingCandidates.slice(0, secondChunkSize)
-
-            console.log(`📦 Sending second chunk: next ${secondChunk.length} candidates (${firstChunkSize + 1}-${firstChunkSize + secondChunk.length})`)
-
-            const formattedSecondChunk = secondChunk.map(formatCandidate)
-
-            await writer.write(encoder.encode(JSON.stringify({
-              type: 'chunk',
-              data: formattedSecondChunk,
-              chunk_info: {
-                chunk_number: 2,
-                total_chunks: remainingCandidates.length > secondChunkSize ? 3 : 2,
-                candidates_in_chunk: secondChunk.length,
-                is_final: remainingCandidates.length <= secondChunkSize
-              }
-            }) + '\n'))
-
-            // 📦 CHUNK 3+: ANY ADDITIONAL CANDIDATES (if more than 20 total)
-            if (remainingCandidates.length > secondChunkSize) {
-              const additionalCandidates = remainingCandidates.slice(secondChunkSize)
-
-              // Small delay between additional chunks
-              await new Promise(resolve => setTimeout(resolve, 100))
-
-              console.log(`📦 Sending final chunk: remaining ${additionalCandidates.length} candidates`)
-
-              const formattedAdditionalChunk = additionalCandidates.map(formatCandidate)
-
-              await writer.write(encoder.encode(JSON.stringify({
-                type: 'chunk',
-                data: formattedAdditionalChunk,
-                chunk_info: {
-                  chunk_number: 3,
-                  total_chunks: 3,
-                  candidates_in_chunk: additionalCandidates.length,
-                  is_final: true
-                }
-              }) + '\n'))
-            }
-          }
-
-          // Send completion signal
-          const chunksDelivered = totalCandidates <= 5 ? 1 : totalCandidates <= 20 ? 2 : 3
-
-          await writer.write(encoder.encode(JSON.stringify({
-            type: 'complete',
-            pipeline_summary: {
-              recall_count: candidates.length,
-              rerank_count: 0,
-              top_score: finalCandidates[0]?.final_score || 0,
-              chunks_delivered: chunksDelivered
-            }
-          }) + '\n'))
-
-          console.log(`🎉 Fallback streaming completed! Delivered ${totalCandidates} candidates in ${chunksDelivered} chunks`)
-          return
-        }
-
-        // Prepare reranking request
-        const candidateTexts = candidatesWithFullText.map(candidate => {
-          // Truncate to prevent token limit issues (approximately 512 tokens)
-          return candidate.full_text_content.slice(0, 2000)
-        })
-
-        const rerankRequest = {
-          query: query,
-          texts: candidateTexts
-        }
-
-        console.log('🚀 Calling Hugging Face reranking endpoint...')
-        console.log('Query:', query)
-        console.log('Candidates to rerank:', candidatesWithFullText.length)
-        
-        // Call Hugging Face reranking endpoint
-        const rerankerResponse = await fetch(rerankerEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${hfApiKey}`
-          },
-          body: JSON.stringify(rerankRequest)
-        })
-
-        if (!rerankerResponse.ok) {
-          const errorText = await rerankerResponse.text()
-          console.error('❌ Reranking API error:', rerankerResponse.status, errorText)
-          
-          // 检查是否是503服务不可用错误（冷启动场景）
-          if (rerankerResponse.status === 503) {
-            console.log('🔥 Detected 503 error - likely cold start. Implementing retry strategy...')
-            
-            // 发送延长loading状态的元数据
-            await writer.write(encoder.encode(JSON.stringify({
-              type: 'meta',
-              phase: 'rerank_coldstart',
-              message: 'Reranking service is starting up, please wait...'
-            }) + '\n'))
-
-            // 冷启动重试策略：等待更长时间，多次重试
-            const maxRetries = 3
-            const retryDelays = [30000, 45000, 60000] // 30秒、45秒、60秒 - 适合TEI容器冷启动
-            
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-              console.log(`🔄 Retry attempt ${attempt + 1}/${maxRetries}, waiting ${retryDelays[attempt]}ms...`)
-              
-              // 发送重试状态更新
-              await writer.write(encoder.encode(JSON.stringify({
-                type: 'meta',
-                phase: 'rerank_retry',
-                retry_attempt: attempt + 1,
-                max_retries: maxRetries,
-                message: `Waiting for service startup... (${attempt + 1}/${maxRetries})`
-              }) + '\n'))
-              
-              // 等待指定时间
-              await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]))
-              
-              try {
-                console.log(`🚀 Retry ${attempt + 1}: Calling reranking endpoint again...`)
-                const retryResponse = await fetch(rerankerEndpoint, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${hfApiKey}`
-                  },
-                  body: JSON.stringify(rerankRequest)
-                })
-
-                if (retryResponse.ok) {
-                  console.log(`✅ Retry ${attempt + 1} successful! Service is now available.`)
-                  const rerankResults: Array<{ index: number, score: number }> = await retryResponse.json()
-                  console.log('✅ Reranking completed, results received:', rerankResults.length)
-
-                  // 发送重试成功的元数据
-                  await writer.write(encoder.encode(JSON.stringify({
-                    type: 'meta',
-                    phase: 'rerank_success_after_retry',
-                    retry_attempt: attempt + 1,
-                    message: 'Service ready! Processing results...'
-                  }) + '\n'))
-
-                  // 继续执行正常的重排序流程...
-                  // [这里继续原有的重排序成功后的处理逻辑]
-                  
-                  // 🎯 PHASE 3: COMBINE AND SORT (优化分数计算) - 复制原有逻辑
-                  const rerankedCandidates = candidatesWithFullText
-                    .map((candidate, index) => {
-                      const rerankResult = rerankResults.find(r => r.index === index)
-                      const rerankScore = rerankResult ? rerankResult.score : 0
-                      
-                      const normalizedSimilarity = Math.max(0, Math.min(1, candidate.combined_score))
-                      const enhancedRerankScore = Math.min(1, rerankScore * 2.5)
-                      const balancedScore = (normalizedSimilarity * 0.6) + (enhancedRerankScore * 0.4)
-                      const displayScore = Math.round(balancedScore * 100)
-                      
-                      return {
-                        ...candidate,
-                        rerank_score: rerankScore,
-                        enhanced_rerank_score: enhancedRerankScore,
-                        normalized_similarity: normalizedSimilarity,
-                        final_score: balancedScore,
-                        display_score: displayScore
-                      }
-                    })
-                    .sort((a, b) => b.final_score - a.final_score)
-
-                  console.log('🎯 Final ranking completed after retry, top 3 candidates:')
-                  rerankedCandidates.slice(0, 3).forEach((c, i) => {
-                    console.log(`${i + 1}. ${c.name} - Display Score: ${c.display_score}% (after ${attempt + 1} retries)`)
-                  })
-
-                  // 发送重排序完成元数据
-                  await writer.write(encoder.encode(JSON.stringify({
-                    type: 'meta',
-                    phase: 'rerank_complete',
-                    reranked: rerankedCandidates.length
-                  }) + '\n'))
-
-                  // 🎯 PHASE 4: 继续正常的分块流式传输...
-                  // [这里需要复制完整的分块传输逻辑]
-                  const totalCandidates = rerankedCandidates.length
-                  const formatCandidate = (candidate: any) => ({
-                    id: candidate.id,
-                    data: candidate,
-                    similarity: candidate.similarity,
-                    created_at: candidate.created_at,
-                    updated_at: candidate.updated_at,
-                    name: candidate.name,
-                    email: candidate.email,
-                    phone: candidate.phone,
-                    title: candidate.current_title,
-                    current_title: candidate.current_title,
-                    current_company: candidate.current_company,
-                    location: candidate.location,
-                    years_of_experience: candidate.years_of_experience,
-                    expected_salary_min: candidate.expected_salary_min,
-                    expected_salary_max: candidate.expected_salary_max,
-                    skills: candidate.skills || [],
-                    file_url: candidate.file_url,
-                    match_score: candidate.display_score || Math.round(candidate.final_score * 100),
-                    experience: candidate.years_of_experience ? `${candidate.years_of_experience}年经验` : null,
-                    rerank_score: candidate.rerank_score,
-                    enhanced_rerank_score: candidate.enhanced_rerank_score,
-                    normalized_similarity: candidate.normalized_similarity,
-                    final_score: candidate.final_score,
-                    display_score: candidate.display_score,
-                    original_rank: candidates.findIndex(c => c.id === candidate.id) + 1,
-                    final_rank: rerankedCandidates.findIndex(c => c.id === candidate.id) + 1
-                  })
-
-                  // 发送分块数据
-                  const firstChunkSize = Math.min(5, totalCandidates)
-                  const firstChunk = rerankedCandidates.slice(0, firstChunkSize)
-                  const formattedFirstChunk = firstChunk.map(formatCandidate)
-
-                  await writer.write(encoder.encode(JSON.stringify({
-                    type: 'chunk',
-                    data: formattedFirstChunk,
-                    chunk_info: {
-                      chunk_number: 1,
-                      total_chunks: totalCandidates <= 5 ? 1 : totalCandidates <= 20 ? 2 : 3,
-                      candidates_in_chunk: firstChunk.length,
-                      is_final: totalCandidates <= 5
-                    }
-                  }) + '\n'))
-
-                  // 继续发送其他块...
-                  if (totalCandidates > 5) {
-                    await new Promise(resolve => setTimeout(resolve, 50))
-                    const remainingCandidates = rerankedCandidates.slice(5)
-                    const secondChunkSize = Math.min(15, remainingCandidates.length)
-                    const secondChunk = remainingCandidates.slice(0, secondChunkSize)
-                    const formattedSecondChunk = secondChunk.map(formatCandidate)
-
-                    await writer.write(encoder.encode(JSON.stringify({
-                      type: 'chunk',
-                      data: formattedSecondChunk,
-                      chunk_info: {
-                        chunk_number: 2,
-                        total_chunks: remainingCandidates.length > secondChunkSize ? 3 : 2,
-                        candidates_in_chunk: secondChunk.length,
-                        is_final: remainingCandidates.length <= secondChunkSize
-                      }
-                    }) + '\n'))
-
-                    if (remainingCandidates.length > secondChunkSize) {
-                      const additionalCandidates = remainingCandidates.slice(secondChunkSize)
-                      await new Promise(resolve => setTimeout(resolve, 100))
-                      const formattedAdditionalChunk = additionalCandidates.map(formatCandidate)
-
-                      await writer.write(encoder.encode(JSON.stringify({
-                        type: 'chunk',
-                        data: formattedAdditionalChunk,
-                        chunk_info: {
-                          chunk_number: 3,
-                          total_chunks: 3,
-                          candidates_in_chunk: additionalCandidates.length,
-                          is_final: true
-                        }
-                      }) + '\n'))
-                    }
-                  }
-
-                  // 发送完成信号
-                  const chunksDelivered = totalCandidates <= 5 ? 1 : totalCandidates <= 20 ? 2 : 3
-                  await writer.write(encoder.encode(JSON.stringify({
-                    type: 'complete',
-                    pipeline_summary: {
-                      recall_count: candidates.length,
-                      rerank_count: rerankedCandidates.length,
-                      top_score: rerankedCandidates[0]?.final_score || 0,
-                      chunks_delivered: chunksDelivered,
-                      retry_attempts: attempt + 1
-                    }
-                  }) + '\n'))
-
-                  console.log(`🎉 Chunked streaming completed after ${attempt + 1} retries! Delivered ${totalCandidates} candidates`)
-                  return // 成功完成，退出函数
-                } else {
-                  console.log(`❌ Retry ${attempt + 1} failed with status:`, retryResponse.status)
-                  if (attempt === maxRetries - 1) {
-                    console.log('😞 All retries exhausted, falling back to vector-only results...')
-                    break // 最后一次重试也失败了，跳出循环执行fallback
-                  }
-                }
-              } catch (retryError) {
-                console.error(`❌ Error during retry ${attempt + 1}:`, retryError)
-                if (attempt === maxRetries - 1) {
-                  console.log('😞 All retries exhausted due to errors, falling back to vector-only results...')
-                  break
-                }
-              }
-            }
-          }
-
-          // 如果不是503错误，或者重试全部失败，执行fallback
-          console.log('🔄 Falling back to vector-only results...')
-          
-                     // Fallback to vector-only results with the same chunked delivery pattern
-           const fallbackCandidates = candidatesWithFullText.map((candidate, index) => {
-             const normalizedSimilarity = Math.max(0, Math.min(1, candidate.combined_score || 0.5))
-             
-             // 应用与主流程相同的语义加分逻辑
-             const titleLower = candidate.current_title?.toLowerCase() || ''
-             const titleMatch = titleLower.includes('后端') ||
-                               titleLower.includes('backend') ||
-                               titleLower.includes('server') ||
-                               titleLower.includes('golang') ||
-                               titleLower.includes('java') ||
-                               titleLower.includes('python') ? 0.3 : 0
-             
-             const skillsMatch = candidate.skills?.some(skill => 
-               ['golang', 'java', 'python', 'node.js', 'c++', 'c#', 'rust', 'mysql', 'redis', 'mongodb', 'postgresql'].some(backend_skill => 
-                 skill.toLowerCase().includes(backend_skill)
-               )) ? 0.2 : 0
-             
-             const semanticBonus = titleMatch + skillsMatch
-             const finalScore = (normalizedSimilarity * 0.7) + (semanticBonus * 0.3)
-             
-             // 用户友好的显示分数
-             let displayScore
-             if (finalScore >= 0.8) displayScore = Math.round(85 + (finalScore - 0.8) * 75)
-             else if (finalScore >= 0.6) displayScore = Math.round(70 + (finalScore - 0.6) * 75)
-             else if (finalScore >= 0.4) displayScore = Math.round(55 + (finalScore - 0.4) * 75)
-             else if (finalScore >= 0.2) displayScore = Math.round(40 + (finalScore - 0.2) * 75)
-             else displayScore = Math.round(25 + finalScore * 75)
-             
-             return {
-               ...candidate,
-               search_score: candidate.combined_score || 0.5,
-               rerank_score: null,
-               normalized_similarity: normalizedSimilarity,
-               title_match_bonus: titleMatch,
-               skills_match_bonus: skillsMatch,
-               semantic_bonus: semanticBonus,
-               final_score: finalScore,
-               display_score: displayScore,
-               rank: index + 1
-             }
-           })
-
-          // Send metadata indicating fallback mode
-          await writer.write(encoder.encode(JSON.stringify({
-            type: 'meta',
-            phase: 'fallback_vector_only',
-            message: rerankerResponse.status === 503 
-              ? 'Service startup timeout - using vector search results'
-              : 'Using vector search only due to reranking service error'
-          }) + '\n'))
-
-          // Use the same chunked streaming delivery as the fallback section above
-          const totalCandidates = fallbackCandidates.length
-          const formatCandidate = (candidate: any) => ({
-            id: candidate.id,
-            name: candidate.name,
-            current_title: candidate.current_title,
-            current_company: candidate.current_company,
-            location: candidate.location,
-            years_of_experience: candidate.years_of_experience,
-            expected_salary_min: candidate.expected_salary_min,
-            expected_salary_max: candidate.expected_salary_max,
-            skills: candidate.skills,
-            match_score: candidate.display_score || Math.round(candidate.final_score * 100),
-            search_score: candidate.search_score,
-            rerank_score: candidate.rerank_score,
-            normalized_similarity: candidate.normalized_similarity,
-            final_score: candidate.final_score,
-            display_score: candidate.display_score,
-            rank: candidate.rank
-          })
-
-          // 📦 CHUNK 1: IMMEDIATE TOP 5 CANDIDATES
-          const firstChunkSize = Math.min(5, totalCandidates)
-          const firstChunk = fallbackCandidates.slice(0, firstChunkSize)
-
-          console.log(`⚡ Sending immediate chunk: top ${firstChunk.length} candidates`)
-
-          const formattedFirstChunk = firstChunk.map(formatCandidate)
-
-          await writer.write(encoder.encode(JSON.stringify({
-            type: 'chunk',
-            data: formattedFirstChunk,
-            chunk_info: {
-              chunk_number: 1,
-              total_chunks: totalCandidates <= 5 ? 1 : totalCandidates <= 20 ? 2 : 3,
-              candidates_in_chunk: firstChunk.length,
-              is_final: totalCandidates <= 5
-            }
-          }) + '\n'))
-
-          // Send more chunks if needed
-          if (totalCandidates > 5) {
-            const remainingCandidates = fallbackCandidates.slice(5)
-
-            // Small delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 50))
-
-            // 📦 CHUNK 2: NEXT 15 CANDIDATES
-            const secondChunkSize = Math.min(15, remainingCandidates.length)
-            const secondChunk = remainingCandidates.slice(0, secondChunkSize)
-
-            console.log(`📦 Sending second chunk: next ${secondChunk.length} candidates (${firstChunkSize + 1}-${firstChunkSize + secondChunk.length})`)
-
-            const formattedSecondChunk = secondChunk.map(formatCandidate)
-
-            await writer.write(encoder.encode(JSON.stringify({
-              type: 'chunk',
-              data: formattedSecondChunk,
-              chunk_info: {
-                chunk_number: 2,
-                total_chunks: remainingCandidates.length > secondChunkSize ? 3 : 2,
-                candidates_in_chunk: secondChunk.length,
-                is_final: remainingCandidates.length <= secondChunkSize
-              }
-            }) + '\n'))
-
-            // 📦 CHUNK 3+: ANY ADDITIONAL CANDIDATES (if more than 20 total)
-            if (remainingCandidates.length > secondChunkSize) {
-              const additionalCandidates = remainingCandidates.slice(secondChunkSize)
-
-              // Small delay between additional chunks
-              await new Promise(resolve => setTimeout(resolve, 100))
-
-              console.log(`📦 Sending final chunk: remaining ${additionalCandidates.length} candidates`)
-
-              const formattedAdditionalChunk = additionalCandidates.map(formatCandidate)
-
-              await writer.write(encoder.encode(JSON.stringify({
-                type: 'chunk',
-                data: formattedAdditionalChunk,
-                chunk_info: {
-                  chunk_number: 3,
-                  total_chunks: 3,
-                  candidates_in_chunk: additionalCandidates.length,
-                  is_final: true
-                }
-              }) + '\n'))
-            }
-          }
-
-          // Send completion signal
-          const chunksDelivered = totalCandidates <= 5 ? 1 : totalCandidates <= 20 ? 2 : 3
-
-          await writer.write(encoder.encode(JSON.stringify({
-            type: 'complete',
-            pipeline_summary: {
-              recall_count: candidates.length,
-              rerank_count: 0,
-              top_score: fallbackCandidates[0]?.final_score || 0,
-              chunks_delivered: chunksDelivered,
-              fallback_reason: rerankerResponse.status === 503
-                ? `Service startup timeout (${rerankerResponse.status})`
-                : `Reranking service unavailable (${rerankerResponse.status})`
-            }
-          }) + '\n'))
-
-          console.log(`🎉 Fallback streaming completed! Delivered ${totalCandidates} candidates in ${chunksDelivered} chunks`)
-          return
-        }
-
-        const rerankResults: Array<{ index: number, score: number }> = await rerankerResponse.json()
-        console.log('✅ Reranking completed, results received:', rerankResults.length)
-
-        // 🎯 PHASE 3: COMBINE AND SORT (优化分数计算)
-        const rerankedCandidates = candidatesWithFullText
-          .map((candidate, index) => {
-            const rerankResult = rerankResults.find(r => r.index === index)
-            const rerankScore = rerankResult ? rerankResult.score : 0
-            
-            // 🔧 新的分数优化策略
-            const normalizedSimilarity = Math.max(0, Math.min(1, candidate.combined_score))
-            
-            // 🎯 针对数据质量调整重排分数权重
-            const effectiveRerankScore = rerankScore * 10 // 对于简短文本，放大重排分数
-            const cappedRerankScore = Math.min(1, effectiveRerankScore)
-            
-            // 🎪 三重分数组合策略
-            const vectorScore = normalizedSimilarity
-            const titleLower = candidate.current_title?.toLowerCase() || ''
-            const titleMatch = titleLower.includes('后端') ||
-                              titleLower.includes('backend') ||
-                              titleLower.includes('server') ||
-                              titleLower.includes('golang') ||
-                              titleLower.includes('java') ||
-                              titleLower.includes('python') ? 0.3 : 0
-            
-            const skillsMatch = candidate.skills?.some(skill => 
-              ['golang', 'java', 'python', 'node.js', 'c++', 'c#', 'rust', 'mysql', 'redis', 'mongodb', 'postgresql'].some(backend_skill => 
-                skill.toLowerCase().includes(backend_skill)
-              )) ? 0.2 : 0
-            
-            // 综合分数：向量(50%) + 重排(30%) + 语义匹配(20%)
-            const semanticBonus = titleMatch + skillsMatch
-            const finalScore = (vectorScore * 0.5) + (cappedRerankScore * 0.3) + (semanticBonus * 0.2)
-            
-            // 🎨 用户友好的显示分数：转换到更直观的范围
-            let displayScore
-            if (finalScore >= 0.8) displayScore = Math.round(85 + (finalScore - 0.8) * 75) // 85-100%
-            else if (finalScore >= 0.6) displayScore = Math.round(70 + (finalScore - 0.6) * 75) // 70-85%
-            else if (finalScore >= 0.4) displayScore = Math.round(55 + (finalScore - 0.4) * 75) // 55-70%
-            else if (finalScore >= 0.2) displayScore = Math.round(40 + (finalScore - 0.2) * 75) // 40-55%
-            else displayScore = Math.round(25 + finalScore * 75) // 25-40%
-            
-            return {
-              ...candidate,
-              rerank_score: rerankScore,
-              enhanced_rerank_score: cappedRerankScore,
-              normalized_similarity: normalizedSimilarity,
-              title_match_bonus: titleMatch,
-              skills_match_bonus: skillsMatch,
-              semantic_bonus: semanticBonus,
-              final_score: finalScore,
-              display_score: displayScore
-            }
-          })
-          .sort((a, b) => b.final_score - a.final_score)
-
-        console.log('🎯 Final ranking completed, top 3 candidates (优化后):')
-        rerankedCandidates.slice(0, 3).forEach((c, i) => {
-          console.log(`${i + 1}. ${c.name} - Display Score: ${c.display_score}% | Final: ${c.final_score.toFixed(3)} | Vector: ${c.normalized_similarity.toFixed(3)} | Rerank: ${c.rerank_score.toFixed(3)}→${c.enhanced_rerank_score.toFixed(3)}`)
-        })
-
-        // Send reranking metadata
-        await writer.write(encoder.encode(JSON.stringify({
-          type: 'meta',
-          phase: 'rerank_complete',
-          reranked: rerankedCandidates.length
-        }) + '\n'))
-
-        // 🎯 PHASE 4: CHUNKED STREAMING FOR OPTIMAL UX
-        console.log('📡 Phase 4: Starting chunked streaming...')
-        
-        const formatCandidate = (candidate: any) => ({
-          id: candidate.id,
-          data: candidate,
-          similarity: candidate.similarity,
-          created_at: candidate.created_at,
-          updated_at: candidate.updated_at,
-          name: candidate.name,
-          email: candidate.email,
-          phone: candidate.phone,
-          title: candidate.current_title,
-          current_title: candidate.current_title,
-          current_company: candidate.current_company,
-          location: candidate.location,
-          years_of_experience: candidate.years_of_experience,
-          expected_salary_min: candidate.expected_salary_min,
-          expected_salary_max: candidate.expected_salary_max,
-          skills: candidate.skills || [],
-          file_url: candidate.file_url,
-          match_score: candidate.display_score || Math.round(candidate.final_score * 100), // 使用优化后的显示分数
-          experience: candidate.years_of_experience ? `${candidate.years_of_experience}年经验` : null,
-          // 完整的分数元数据
-          rerank_score: candidate.rerank_score,
-          enhanced_rerank_score: candidate.enhanced_rerank_score,
-          normalized_similarity: candidate.normalized_similarity,
-          final_score: candidate.final_score,
-          display_score: candidate.display_score,
-          original_rank: candidates.findIndex(c => c.id === candidate.id) + 1,
-          final_rank: rerankedCandidates.findIndex(c => c.id === candidate.id) + 1
-        })
-
-        // 🚀 CHUNK 1: IMMEDIATE TOP 5 (First Screen Acceleration)
-        const totalCandidates = rerankedCandidates.length
-        const firstChunkSize = Math.min(5, totalCandidates)
-        const firstChunk = rerankedCandidates.slice(0, firstChunkSize)
-        
-        console.log(`⚡ Sending immediate chunk: top ${firstChunkSize} candidates`)
-        
-        const formattedFirstChunk = firstChunk.map(formatCandidate)
-        
-        await writer.write(encoder.encode(JSON.stringify({
-          type: 'chunk',
-          data: formattedFirstChunk,
-          chunk_info: {
-            chunk_number: 1,
-            total_chunks: totalCandidates > firstChunkSize ? 2 : 1,
-            candidates_in_chunk: firstChunkSize,
-            is_final: totalCandidates <= firstChunkSize
+          type: 'results',
+          data: results,
+          count: results.length,
+          search_config: {
+            mode: 'hybrid',
+            vector_weight: vectorWeight,
+            fts_weight: 1 - vectorWeight,
+            normalization: 'min-max',
+            alpha: vectorWeight
           }
         }) + '\n'))
-
-        // 🔄 CHUNK 2: REMAINING CANDIDATES (Asynchronous Load)
-        if (totalCandidates > firstChunkSize) {
-          // Brief delay for optimal UX (allows first chunk to render)
-          await new Promise(resolve => setTimeout(resolve, 50))
-          
-          const remainingCandidates = rerankedCandidates.slice(firstChunkSize)
-          const secondChunkSize = Math.min(15, remainingCandidates.length)
-          const secondChunk = remainingCandidates.slice(0, secondChunkSize)
-          
-          console.log(`📦 Sending second chunk: next ${secondChunk.length} candidates (${firstChunkSize + 1}-${firstChunkSize + secondChunk.length})`)
-          
-          const formattedSecondChunk = secondChunk.map(formatCandidate)
-          
-          await writer.write(encoder.encode(JSON.stringify({
-            type: 'chunk',
-            data: formattedSecondChunk,
-            chunk_info: {
-              chunk_number: 2,
-              total_chunks: remainingCandidates.length > secondChunkSize ? 3 : 2,
-              candidates_in_chunk: secondChunk.length,
-              is_final: remainingCandidates.length <= secondChunkSize
-            }
-          }) + '\n'))
-
-          // 📦 CHUNK 3+: ANY ADDITIONAL CANDIDATES (if more than 20 total)
-          if (remainingCandidates.length > secondChunkSize) {
-            const additionalCandidates = remainingCandidates.slice(secondChunkSize)
-            
-            // Small delay between additional chunks
-            await new Promise(resolve => setTimeout(resolve, 100))
-            
-            console.log(`📦 Sending final chunk: remaining ${additionalCandidates.length} candidates`)
-            
-            const formattedAdditionalChunk = additionalCandidates.map(formatCandidate)
-            
-            await writer.write(encoder.encode(JSON.stringify({
-              type: 'chunk',
-              data: formattedAdditionalChunk,
-              chunk_info: {
-                chunk_number: 3,
-                total_chunks: 3,
-                candidates_in_chunk: additionalCandidates.length,
-                is_final: true
-              }
-            }) + '\n'))
-          }
-        }
-
-        // Send completion signal
-        const chunksDelivered = totalCandidates <= 5 ? 1 : totalCandidates <= 20 ? 2 : 3
         
         await writer.write(encoder.encode(JSON.stringify({
           type: 'complete',
-          pipeline_summary: {
-            recall_count: candidates.length,
-            rerank_count: rerankedCandidates.length,
-            top_score: rerankedCandidates[0]?.final_score || 0,
-            chunks_delivered: chunksDelivered
-          }
+          message: '混合搜索完成'
         }) + '\n'))
-
-        console.log(`🎉 Chunked streaming completed! Delivered ${totalCandidates} candidates in ${chunksDelivered} chunks`)
 
       } catch (error) {
-        console.error('❌ Pipeline error:', error)
+        console.error('🚨 混合搜索失败:', error)
         await writer.write(encoder.encode(JSON.stringify({
           type: 'error',
-          error: error instanceof Error ? error.message : 'Unknown pipeline error'
+          error: error instanceof Error ? error.message : '搜索失败'
         }) + '\n'))
       } finally {
-        await writer.close()
+        writer.close()
       }
     }
 
-    // Start the pipeline asynchronously
-    processSearchPipeline()
+    // Start the search pipeline
+    processHybridSearch()
 
-    // Return streaming response
-    return new NextResponse(readable, {
-      status: 200,
+    return new Response(readable, {
       headers: {
-        'Content-Type': 'application/x-ndjson',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      }
+        'Content-Type': 'text/plain',
+        'Transfer-Encoding': 'chunked',
+      },
     })
 
   } catch (error) {
-    console.error('❌ Search API error:', error)
+    console.error('🚨 搜索API错误:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : '搜索请求失败' 
-      },
+      { success: false, error: error instanceof Error ? error.message : '搜索请求失败' },
       { status: 500 }
     )
   }

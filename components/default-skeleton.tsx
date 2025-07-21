@@ -31,7 +31,7 @@ export const MessageSkeleton = () => {
       </div>
       <div className="flex-1 rounded-2xl px-0 -ml-4">
         <div className="space-y-3">
-          <ShimmerElement className="h-4 w-32 transform -translate-x-2" />
+          <ShimmerElement className="h-4 w-32" style={{ transform: 'translateX(2px)' }} />
         </div>
       </div>
     </div>
@@ -40,7 +40,7 @@ export const MessageSkeleton = () => {
 
 const SingleCardSkeleton = ({ variant }: { variant: 'candidate' | 'job' }) => {
   return (
-    <div className="bg-white rounded-xl px-4 py-3 shadow-[0_4px_12px_rgba(0,0,0,0.06)] cursor-pointer -ml-8">
+    <div className="bg-white rounded-xl px-4 py-3 shadow-[0_4px_12px_rgba(0,0,0,0.06)] cursor-pointer w-full" style={{ maxWidth: '645px', marginLeft: '45px' }}>
       {/* 标题区域 - 匹配候选人卡片布局 */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
         <div className="flex-1 min-w-0 space-y-1">

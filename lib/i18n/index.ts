@@ -101,7 +101,7 @@ export const translations = {
     'search.noResults.jobs': '未找到匹配的职位，尝试调整搜索条件。',
     
     // Mode Switcher
-    'mode.candidates': '寻找候选人',
+    'mode.candidates': '寻找人选',
     'mode.jobs': '寻找职位',
     'mode.searchMode': '搜索模式',
     'mode.currentMode': '当前搜索模式',

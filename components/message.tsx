@@ -27,6 +27,7 @@ export function BotMessage({
 
   if (containsLaTeX) {
     return (
+      <div className="max-w-full break-words overflow-wrap-anywhere">
       <MemoizedReactMarkdown
         rehypePlugins={[
           [rehypeExternalLinks, { target: '_blank' }],
@@ -35,20 +36,24 @@ export function BotMessage({
         remarkPlugins={[remarkGfm, remarkMath]}
         className={cn(
           'prose-sm prose-neutral prose-a:text-accent-foreground/50',
+            'max-w-none break-words overflow-wrap-anywhere',
           className
         )}
       >
         {processedData}
       </MemoizedReactMarkdown>
+      </div>
     )
   }
 
   return (
+    <div className="max-w-full break-words overflow-wrap-anywhere">
     <MemoizedReactMarkdown
       rehypePlugins={[[rehypeExternalLinks, { target: '_blank' }]]}
       remarkPlugins={[remarkGfm]}
       className={cn(
         'prose-sm prose-neutral prose-a:text-accent-foreground/50',
+          'max-w-none break-words overflow-wrap-anywhere',
         className
       )}
       components={{
@@ -87,6 +92,7 @@ export function BotMessage({
     >
       {message}
     </MemoizedReactMarkdown>
+    </div>
   )
 }
 

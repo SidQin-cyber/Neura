@@ -50,9 +50,9 @@ export function CandidateResultsSection({
   })
   
   const resultsContent = (
-    <div className="space-y-4">
-      {/* 简单的结果统计 */}
-      <div className="text-sm text-muted-foreground mb-6 -ml-4">
+    <div className="">
+      {/* 简单的结果统计 - 向左移动一些距离 */}
+      <div className="text-sm text-muted-foreground mb-6 -ml-3">
         找到 {candidates.length} 个候选人
         {query && (
           <span className="ml-2">
@@ -61,7 +61,7 @@ export function CandidateResultsSection({
         )}
       </div>
 
-      {/* 候选人列表 - 简化版 */}
+      {/* 候选人列表 - 简化版，与统计文字左对齐 */}
       {candidates.length > 0 ? (
         <div className="space-y-4">
           {candidates.map((candidate, index) => {

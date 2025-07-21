@@ -31,9 +31,9 @@ export function JobResultsSection({
   }
   
   const resultsContent = (
-    <div className="space-y-4">
-      {/* 简单的结果统计 */}
-      <div className="text-sm text-muted-foreground mb-6">
+    <div className="">
+      {/* 简单的结果统计 - 向左移动一些距离 */}
+      <div className="text-sm text-muted-foreground mb-6 -ml-3">
         {t('search.found.jobs', { count: jobs.length })}
         {query && (
                   <span className="ml-2">
@@ -42,7 +42,7 @@ export function JobResultsSection({
         )}
       </div>
 
-      {/* 职位列表 - 简化版 */}
+      {/* 职位列表 - 简化版，与统计文字左对齐 */}
       {jobs.length > 0 ? (
         <div className="space-y-4">
           {jobs.map((job) => (

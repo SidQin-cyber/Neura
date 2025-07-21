@@ -86,13 +86,11 @@ export function ChatMessages({
   if (!sections.length) {
     return (
       <div
-        id="scroll-container"
-        ref={scrollContainerRef}
         role="list"
         aria-roledescription="chat messages"
-        className="relative size-full pt-14 flex-1 overflow-y-auto"
+        className="relative w-full min-h-full pt-14"
       >
-        <div className="relative mx-auto w-full max-w-3xl px-4">
+        <div className="relative mx-auto w-full max-w-3xl px-4" style={{ minHeight: 'calc(100vh - 200px)' }}>
           {/* Empty state - maintain layout */}
         </div>
       </div>
@@ -136,26 +134,16 @@ export function ChatMessages({
 
   return (
     <div
-      id="scroll-container"
-      ref={scrollContainerRef}
       role="list"
       aria-roledescription="chat messages"
-      className={cn(
-        'relative size-full pt-14',
-        sections.length > 0 ? 'flex-1 overflow-y-auto' : ''
-      )}
+      className="relative w-full min-h-full pt-14"
     >
-      <div className="relative mx-auto w-full max-w-3xl px-4">
+      <div className="relative mx-auto w-full max-w-3xl px-4" style={{ minHeight: 'calc(100vh - 200px)' }}>
         {sections.map((section, sectionIndex) => (
           <div
             key={section.id}
             id={`section-${section.id}`}
             className="chat-section mb-6"
-            style={
-              sectionIndex === sections.length - 1
-                ? { minHeight: 'calc(-228px + 100dvh)' }
-                : {}
-            }
           >
             {/* User message */}
             <div className="flex flex-col gap-4">

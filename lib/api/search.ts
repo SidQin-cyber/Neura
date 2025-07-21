@@ -4,11 +4,11 @@ export interface SearchParams {
   query: string
   mode: 'candidates' | 'jobs'
   filters: {
-    location?: string
+    location?: string[]
     experience?: string
     salary?: string
     skills?: string[]
-    education?: string
+    education?: string[]
   }
 }
 
@@ -25,7 +25,7 @@ export interface StreamingSearchResponse {
 }
 
 export interface SearchStreamChunk {
-  type: 'meta' | 'chunk' | 'complete' | 'error'
+  type: 'meta' | 'chunk' | 'complete' | 'error' | 'results'
   data?: any
   chunk_info?: {
     chunk_number: number
@@ -45,6 +45,7 @@ export interface SearchStreamChunk {
     chunks_delivered: number
   }
   error?: string
+  count?: number
 }
 
 // Enhanced streaming search function
@@ -158,6 +159,24 @@ export async function parseSearchStream(
                 console.log('📊 Meta info:', chunk.phase, chunk.total, chunk.reranked)
                 onChunk(chunk)
                 break
+              
+              case 'results':
+                // Handle direct search results from our backend
+                if (chunk.data && Array.isArray(chunk.data)) {
+                  console.log('🎯 Direct results received:', chunk.data.length, 'candidates')
+                  allResults.push(...chunk.data)
+                  onChunk(chunk)
+                  
+                  // Immediately call onComplete for direct results
+                  console.log('✅ Calling onComplete with', allResults.length, 'results')
+                  onComplete(allResults)
+                  return
+                } else {
+                  // Handle empty results
+                  console.log('📭 Empty results received')
+                  onComplete([])
+                  return
+                }
               
               case 'chunk':
                 if (chunk.data && Array.isArray(chunk.data)) {

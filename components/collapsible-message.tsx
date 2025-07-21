@@ -33,10 +33,10 @@ export function CollapsibleMessage({
 
   // 用户消息和助手消息的不同布局
   if (role === 'user') {
-    // 用户消息：右对齐，去掉头像，使用较浅的灰色背景
+    // 用户消息：右对齐，去掉头像，使用较浅的灰色背景，减少宽度并向左平移
     return (
-      <div className="flex justify-end mb-6">
-        <div className="max-w-[80%]">
+      <div className="flex justify-end mb-6 mr-12">
+        <div className="max-w-[65%]">
           <div className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-2 break-words text-base">
             {content}
           </div>
@@ -59,9 +59,10 @@ export function CollapsibleMessage({
       {isCollapsible ? (
         <div
           className={cn(
-            'flex-1 rounded-2xl p-4',
+            'flex-1 rounded-2xl p-4 break-words overflow-wrap-anywhere',
             showBorder && 'border border-border/50'
           )}
+          style={{ maxWidth: '645px' }}
         >
           <Collapsible
             open={isOpen}
@@ -80,14 +81,14 @@ export function CollapsibleMessage({
                 </button>
               </CollapsibleTrigger>
             </div>
-            <CollapsibleContent className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down text-base">
+            <CollapsibleContent className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down text-base break-words overflow-wrap-anywhere">
               <Separator className="my-4 border-border/50" />
               {content}
             </CollapsibleContent>
           </Collapsible>
         </div>
       ) : (
-        <div className="flex-1 rounded-2xl px-0 text-base">
+        <div className="flex-1 rounded-2xl px-0 text-base break-words overflow-wrap-anywhere" style={{ maxWidth: '645px' }}>
           {content}
         </div>
       )}

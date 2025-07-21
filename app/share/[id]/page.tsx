@@ -3,6 +3,7 @@ import { getSharedChat } from '@/lib/actions/chat'
 import { getModels } from '@/lib/config/models'
 import { convertToUIMessages } from '@/lib/utils'
 import { notFound } from 'next/navigation'
+import ArtifactRoot from '@/components/artifact/artifact-root'
 
 export async function generateMetadata(props: {
   params: Promise<{ id: string }>
@@ -31,10 +32,12 @@ export default async function SharePage(props: {
 
   const models = await getModels()
   return (
-    <Chat
-      id={chat.id}
-      savedMessages={convertToUIMessages(chat.messages)}
-      models={models}
-    />
+    <ArtifactRoot>
+      <Chat
+        id={chat.id}
+        savedMessages={convertToUIMessages(chat.messages)}
+        models={models}
+      />
+    </ArtifactRoot>
   )
 }

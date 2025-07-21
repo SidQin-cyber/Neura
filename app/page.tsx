@@ -3,6 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react'
 import { Message } from 'ai'
 import { SearchProvider, useSearch } from '@/lib/context/search-context'
+import { ArtifactProvider } from '@/components/artifact/artifact-context'
 import { ChatPanel } from '@/components/chat-panel'
 import { ChatMessages } from '@/components/chat-messages'
 
@@ -67,8 +68,34 @@ function HomePageContent() {
     if (lastMessage.role === 'user' || lastMessage.role === 'assistant') {
       const sectionId = lastMessage.id
       requestAnimationFrame(() => {
+        const scrollContainer = scrollContainerRef.current
         const sectionElement = document.getElementById(`section-${sectionId}`)
-        sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        
+        if (scrollContainer && sectionElement) {
+          // 获取section在滚动容器中的位置
+          const containerRect = scrollContainer.getBoundingClientRect()
+          const sectionRect = sectionElement.getBoundingClientRect()
+          const scrollTop = scrollContainer.scrollTop
+          
+          // 计算section相对于滚动容器内容的位置
+          const sectionOffsetTop = sectionRect.top - containerRect.top + scrollTop
+          
+          console.log('📍 滚动到消息:', {
+            sectionId,
+            sectionOffsetTop,
+            scrollTop,
+            containerHeight: scrollContainer.clientHeight,
+            scrollHeight: scrollContainer.scrollHeight
+          })
+          
+          // 滚动到section位置
+          scrollContainer.scrollTo({
+            top: sectionOffsetTop - 20, // 留一些顶部间距
+            behavior: 'smooth'
+          })
+        } else {
+          console.log('❌ 元素未找到:', { scrollContainer: !!scrollContainer, sectionElement: !!sectionElement })
+        }
       })
     }
   }, [messages])
@@ -131,8 +158,12 @@ function HomePageContent() {
 
   return (
     <div className="relative w-full h-full flex flex-col">
-      {/* 主内容区域 - 可滚动 */}
-      <div className="flex-1 overflow-y-auto">
+      {/* 主内容区域 - 确保滚动容器有正确的高度和边界 */}
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto pb-48"
+        style={{ height: '100%' }}
+      >
         <ChatMessages
           sections={sections}
           data={undefined}
@@ -146,21 +177,19 @@ function HomePageContent() {
         />
       </div>
 
-      {/* 固定底部输入框 */}
-      <div className="w-full">
-        <ChatPanel
-          input={input}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
-          messages={messages}
-          setMessages={setMessages}
-          stop={stop}
-          append={append}
-          showScrollToBottomButton={!isAtBottom}
-          scrollContainerRef={scrollContainerRef}
-        />
-      </div>
+      {/* ChatPanel 现在是固定在底部的，不再需要在这里包装 */}
+      <ChatPanel
+        input={input}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+        isLoading={isLoading}
+        messages={messages}
+        setMessages={setMessages}
+        stop={stop}
+        append={append}
+        showScrollToBottomButton={!isAtBottom}
+        scrollContainerRef={scrollContainerRef}
+      />
     </div>
   )
 }
@@ -168,7 +197,9 @@ function HomePageContent() {
 export default function HomePage() {
   return (
     <SearchProvider>
-      <HomePageContent />
+      <ArtifactProvider>
+        <HomePageContent />
+      </ArtifactProvider>
     </SearchProvider>
   )
 }

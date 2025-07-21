@@ -352,7 +352,7 @@ export function SalaryValidationPanel({ className }: SalaryValidationPanelProps)
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                         <div 
-                          className="bg-blue-600 h-2 rounded-full" 
+                          className="bg-purple-500 h-2 rounded-full" 
                           style={{ width: `${(stat.countWithSalary / stat.totalCount) * 100}%` }}
                         />
                       </div>
@@ -414,26 +414,22 @@ export function SalaryValidationPanel({ className }: SalaryValidationPanelProps)
                 </div>
               </div>
               
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-white p-6 rounded-2xl shadow-lg shadow-purple-100/50 border border-purple-100">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
                     {Math.round(matchScore * 100)}%
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">匹配度分数</div>
+                  <div className="text-sm text-purple-600 mt-1 font-medium">Neura Score</div>
                 </div>
                 
-                <div className="mt-3">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="mt-4">
+                  <div className="w-full bg-purple-50 rounded-full h-3 overflow-hidden">
                     <div 
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        matchScore >= 0.8 ? 'bg-green-500' :
-                        matchScore >= 0.6 ? 'bg-yellow-500' :
-                        'bg-red-500'
-                      }`}
+                      className="h-3 rounded-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500 ease-out shadow-sm"
                       style={{ width: `${matchScore * 100}%` }}
                     />
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-purple-600 mt-2 text-center font-medium">
                     {matchScore >= 0.8 ? '高度匹配' :
                      matchScore >= 0.6 ? '基本匹配' :
                      matchScore >= 0.4 ? '存在差距' : '差距较大'}
