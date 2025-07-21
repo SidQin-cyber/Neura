@@ -84,8 +84,8 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // 构造虚拟邮箱
-      const virtualEmail = `${username}@neura.app`
+      // 构造虚拟邮箱（统一使用小写）
+      const virtualEmail = `${username.toLowerCase()}@neura.app`
       
       const { error } = await supabase.auth.signInWithPassword({
         email: virtualEmail,
@@ -128,7 +128,7 @@ export default function LoginPage() {
       <div className="flex flex-col justify-start px-4 pt-12 pb-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24" style={{ flexBasis: '42%' }}>
         <div className="mx-auto w-full max-w-sm lg:w-96">
           <div className="text-center">
-            <div className="flex items-center justify-center mb-[-60px]">
+            <div className="flex items-center justify-center mb-[-40px]">
               <img 
                 src="/providers/logos/logo1.svg" 
                 alt="Neura Logo" 

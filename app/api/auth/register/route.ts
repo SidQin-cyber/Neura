@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // 辅助函数：等待并重试创建用户档案
@@ -57,7 +57,15 @@ async function createUserProfileWithRetry(
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password, fullName } = await request.json()
+    const { username, password, fullName, inviteCode } = await request.json()
+
+    // 🔥 添加邀请码验证
+    if (inviteCode !== 'Neura2025！') {
+      return NextResponse.json(
+        { error: '邀请码错误，请检查大小写和符号' },
+        { status: 400 }
+      )
+    }
 
     // 验证输入
     if (!username || !password || !fullName) {
@@ -92,8 +100,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // 生成虚拟邮箱
-    const virtualEmail = `${username}@neura.app`
+    // 生成虚拟邮箱（统一使用小写）
+    const virtualEmail = `${username.toLowerCase()}@neura.app`
 
     // 检查用户名是否已存在
     const { data: existingProfile } = await supabase
@@ -141,9 +149,10 @@ export async function POST(request: NextRequest) {
       email: virtualEmail
     })
 
-    // 自动确认邮箱
+    // 自动确认邮箱 - 使用 Service Role 客户端
     try {
-      await supabase.rpc('confirm_user_email', {
+      const serviceClient = createServiceRoleClient()
+      await serviceClient.rpc('confirm_user_email', {
         user_email: virtualEmail
       })
       console.log('✅ 邮箱确认成功')
@@ -187,7 +196,7 @@ export async function POST(request: NextRequest) {
           username: username,
           fullName: fullName
         },
-                 warning: '用户档案创建失败：' + (profileError instanceof Error ? profileError.message : '未知错误')
+        warning: '用户档案创建失败：' + (profileError instanceof Error ? profileError.message : '未知错误')
       }, { status: 201 }) // 201 表示部分成功
     }
 

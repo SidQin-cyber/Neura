@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -14,7 +13,9 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [usernameError, setUsernameError] = useState('')
   const router = useRouter()
 
   const validatePassword = (password: string) => {
@@ -38,7 +39,7 @@ export default function RegisterPage() {
     e.preventDefault()
     
     // 表单验证
-    if (!username || !password || !confirmPassword || !fullName) {
+    if (!username || !password || !confirmPassword || !fullName || !inviteCode) {
       toast.error('请填写所有必填字段')
       return
     }
@@ -71,7 +72,8 @@ export default function RegisterPage() {
         body: JSON.stringify({
           username,
           password,
-          fullName
+          fullName,
+          inviteCode: inviteCode.trim()
         })
       })
 
@@ -82,22 +84,9 @@ export default function RegisterPage() {
         return
       }
 
-      toast.success('注册成功！正在为您登录...')
-      
-      // 注册成功后自动登录
-      const supabase = createClient()
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email, // 使用返回的虚拟邮箱
-        password
-      })
-
-      if (signInError) {
-        toast.error('自动登录失败，请手动登录')
-        router.push('/login')
-      } else {
-        router.push('/')
-        router.refresh()
-      }
+      // 注册成功，跳转到登录页面
+      toast.success('注册成功！请登录')
+      router.push('/login')
 
     } catch (error) {
       console.error('Registration error:', error)
@@ -117,16 +106,16 @@ export default function RegisterPage() {
               <img 
                 src="/providers/logos/logo1.svg" 
                 alt="Neura Logo" 
-                className="w-96 h-96"
+                className="w-72 h-72 relative z-0"
               />
             </div>
           </div>
 
-          <div className="mt-0 pt-0">
+          <div className="mt-1 pt-0 relative z-10">
             <form onSubmit={handleRegister} className="space-y-6">
               <div>
                 <Label htmlFor="fullName" className="block text-sm/6 font-medium text-gray-900">
-                  姓名
+                  昵称
                 </Label>
                 <div className="mt-2">
                   <Input
@@ -139,7 +128,7 @@ export default function RegisterPage() {
                     onChange={(e) => setFullName(e.target.value)}
                     disabled={isLoading}
                     className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
-                    placeholder="请输入您的姓名"
+                    placeholder="请输入您的昵称"
                   />
                 </div>
               </div>
@@ -156,15 +145,28 @@ export default function RegisterPage() {
                     required
                     autoComplete="username"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      setUsername(e.target.value)
+                      // 清除之前的错误提示
+                      if (usernameError) {
+                        setUsernameError('')
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // 当用户离开输入框时验证用户名
+                      const error = validateUsername(e.target.value)
+                      setUsernameError(error || '')
+                    }}
                     disabled={isLoading}
                     className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
                     placeholder="请输入用户名（至少3位）"
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  只能包含字母、数字和下划线
-                </p>
+                {usernameError && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {usernameError}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -203,6 +205,25 @@ export default function RegisterPage() {
                     disabled={isLoading}
                     className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
                     placeholder="请再次输入密码"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="inviteCode" className="block text-sm/6 font-medium text-gray-900">
+                  邀请码
+                </Label>
+                <div className="mt-2">
+                  <Input
+                    id="inviteCode"
+                    name="inviteCode"
+                    type="text"
+                    required
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    disabled={isLoading}
+                    className="block w-full rounded-lg bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 transition-all duration-200"
+                    placeholder="请输入邀请码"
                   />
                 </div>
               </div>

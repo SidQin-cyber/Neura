@@ -27,3 +27,21 @@ export async function createClient() {
     }
   )
 }
+
+// 使用 Service Role Key 的客户端，用于管理员级别的操作
+export function createServiceRoleClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return []
+        },
+        setAll() {
+          // Service role 客户端不需要cookies
+        },
+      },
+    }
+  )
+}

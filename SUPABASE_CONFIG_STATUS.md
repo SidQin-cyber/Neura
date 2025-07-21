@@ -8,15 +8,15 @@
 - **区域**: Southeast Asia (Singapore)
 
 ### 安全密钥信息
-- **Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3bmxqYXRxb2lzdmlvYmlvZWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNTU4ODAsImV4cCI6MjA2NzkzMTg4MH0.5RXiwVdTb3dDWBY_nHDwOiFqGs8W18br3MiCubWUkCM`
-- **Service Role Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3bmxqYXRxb2lzdmlvYmlvZWxyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjM1NTg4MCwiZXhwIjoyMDY3OTMxODgwfQ.WN91exuIOgeb8TdI0ORAl17U16VAbI99wNo2wFRCrz4`
+- **Anon Key**: `[REDACTED - 请在.env.local中配置]`CubWUkCM`
+- **Service Role Key**: `[REDACTED - 请在.env.local中配置]`16VAbI99wNo2wFRCrz4`
 
 ## 🔐 配置文件位置
 
 ### 1. 环境变量文件（.env.local）
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://kwnljatqoisviobioelr.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3bmxqYXRxb2lzdmlvYmlvZWxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNTU4ODAsImV4cCI6MjA2NzkzMTg4MH0.5RXiwVdTb3dDWBY_nHDwOiFqGs8W18br3MiCubWUkCM
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[REDACTED - 请在.env.local中配置]CubWUkCM
 ```
 
 ### 2. 部署脚本（setup-env.sh）

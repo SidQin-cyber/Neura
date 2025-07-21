@@ -204,7 +204,7 @@ INSERT INTO auth.users (
   '',
   '',
   '{"provider":"email","providers":["email"]}',
-  '{"full_name":"Test User"}',  -- 替换为实际姓名
+  '{"full_name":"Test User"}',  -- 替换为实际昵称
   false,
   now(),
   null,

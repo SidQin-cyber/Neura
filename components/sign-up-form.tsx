@@ -24,13 +24,13 @@ export function SignUpForm({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
@@ -40,15 +40,33 @@ export function SignUpForm({
       return
     }
 
+    if (!inviteCode.trim()) {
+      setError('Invite code is required')
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`
-        }
+      // 调用我们的注册API，包含邀请码验证
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          inviteCode: inviteCode.trim()
+        }),
       })
-      if (error) throw error
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Registration failed')
+      }
+
+      // 注册成功，跳转到成功页面
       router.push('/auth/sign-up-success')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
@@ -110,6 +128,17 @@ export function SignUpForm({
                   required
                   value={repeatPassword}
                   onChange={e => setRepeatPassword(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="invite-code">Invite Code</Label>
+                <Input
+                  id="invite-code"
+                  type="text"
+                  placeholder="Enter invite code"
+                  required
+                  value={inviteCode}
+                  onChange={e => setInviteCode(e.target.value)}
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
