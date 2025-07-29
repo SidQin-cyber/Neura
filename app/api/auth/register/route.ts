@@ -152,12 +152,23 @@ export async function POST(request: NextRequest) {
     // 自动确认邮箱 - 使用 Service Role 客户端
     try {
       const serviceClient = createServiceRoleClient()
-      await serviceClient.rpc('confirm_user_email', {
-        user_email: virtualEmail
-      })
-      console.log('✅ 邮箱确认成功')
+      
+      // 检查 Service Role Key 是否存在
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY 未配置，跳过邮箱自动确认')
+      } else {
+        const { error: confirmError } = await serviceClient.rpc('confirm_user_email', {
+          user_email: virtualEmail
+        })
+        
+        if (confirmError) {
+          console.error('⚠️ 邮箱确认失败:', confirmError)
+        } else {
+          console.log('✅ 邮箱确认成功')
+        }
+      }
     } catch (confirmError) {
-      console.error('⚠️ 邮箱确认失败:', confirmError)
+      console.error('⚠️ 邮箱确认异常:', confirmError)
       // 不阻止流程，因为用户可能已经创建成功
     }
 
