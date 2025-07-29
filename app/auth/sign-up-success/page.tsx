@@ -13,14 +13,19 @@ export default function Page() {
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Thank you for signing up!</CardTitle>
-              <CardDescription>Check your email to confirm</CardDescription>
+              <CardTitle className="text-2xl">注册成功！</CardTitle>
+              <CardDescription>现在可以直接登录</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                You&apos;ve successfully signed up. Please check your email to confirm your account
-                before signing in.
+                您已成功注册账户，现在可以直接使用您的用户名和密码登录。
               </p>
+              <a 
+                href="/login" 
+                className="mt-4 inline-block w-full text-center bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                前往登录
+              </a>
             </CardContent>
           </Card>
         </div>

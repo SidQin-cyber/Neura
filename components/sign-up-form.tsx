@@ -66,8 +66,8 @@ export function SignUpForm({
         throw new Error(result.error || 'Registration failed')
       }
 
-      // 注册成功，跳转到成功页面
-      router.push('/auth/sign-up-success')
+      // 注册成功，跳转到登录页面
+      router.push('/login')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
