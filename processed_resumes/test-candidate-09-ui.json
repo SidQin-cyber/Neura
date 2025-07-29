@@ -1,0 +1,51 @@
+{
+  "candidate": {
+    "name": "林可欣",
+    "email": "linkexin@email.com",
+    "phone": "13800001009",
+    "age": 27,
+    "current_title": "高级UI/UX设计师",
+    "current_company": "网易",
+    "location": "杭州",
+    "years_of_experience": 5,
+    "expected_salary_min": 20000,
+    "expected_salary_max": 30000,
+    "skills": ["figma", "sketch", "adobe", "prototyping", "用户体验", "界面设计", "交互设计", "html", "css", "用户研究"],
+    "education": {
+      "degree": "本科",
+      "major": "视觉传达设计",
+      "school": "中国美术学院",
+      "year": 2019
+    },
+    "experience": [
+      {
+        "company": "网易",
+        "position": "高级UI/UX设计师",
+        "start_date": "2022-04",
+        "end_date": "至今",
+        "description": "负责网易云音乐移动端设计",
+        "achievements": ["重设计播放页面，用户满意度提升35%", "主导设计系统建设，设计效率提升50%", "获得红点设计奖和iF设计奖"]
+      },
+      {
+        "company": "蚂蚁金服",
+        "position": "UI设计师",
+        "start_date": "2019-07",
+        "end_date": "2022-03",
+        "description": "负责支付宝小程序设计规范制定",
+        "achievements": ["制定小程序设计规范，覆盖10万+开发者", "设计支付流程优化，转化率提升20%"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "网易云音乐6.0改版",
+        "description": "全新视觉风格和交互体验设计",
+        "highlights": ["下载量增长40%", "获得苹果App Store推荐"]
+      }
+    ],
+    "certifications": ["Adobe认证设计师", "Google UX设计认证"],
+    "languages": ["中文", "英文"],
+    "summary": "5年UI/UX设计经验，专精移动端产品设计和用户体验优化。在网易负责云音乐核心功能设计，作品多次获得国际设计奖项。具备完整的设计流程管理和团队协作能力。"
+  },
+  "embedding_text": "高级UI/UX设计师 @ 网易\n高级UI/UX设计师 @ 网易\n\nfigma | sketch | adobe | prototyping | 用户体验 | 界面设计 | 交互设计 | html | css | 用户研究\nfigma | sketch | adobe | prototyping | 用户体验 | 界面设计 | 交互设计 | html | css | 用户研究\n\n高级UI/UX设计师 (2022-04 – 至今)\n重设计播放页面，用户满意度提升35%，主导设计系统建设设计效率提升50%\n\nUI设计师 @ 蚂蚁金服\n高级UI/UX设计师 @ 字节跳动",
+  "fts_document": "林可欣 高级UI/UX设计师 网易 figma sketch adobe prototyping 用户体验 界面设计 交互设计 html css 用户研究 5年UI/UX设计经验，专精移动端产品设计和用户体验优化。在网易负责云音乐核心功能设计，作品多次获得国际设计奖项。具备完整的设计流程管理和团队协作能力。 负责网易云音乐移动端设计 重设计播放页面，用户满意度提升35%，主导设计系统建设，设计效率提升50%，获得红点设计奖和iF设计奖 负责支付宝小程序设计规范制定 制定小程序设计规范，覆盖10万+开发者，设计支付流程优化，转化率提升20% 中国美术学院 网易云音乐6.0改版 全新视觉风格和交互体验设计"
+} 

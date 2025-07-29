@@ -1,0 +1,59 @@
+{
+  "candidate": {
+    "name": "周丽华",
+    "email": "zhoulihua@email.com",
+    "phone": "13800001008",
+    "age": 31,
+    "current_title": "高级产品经理",
+    "current_company": "快手",
+    "location": "北京",
+    "years_of_experience": 8,
+    "expected_salary_min": 35000,
+    "expected_salary_max": 50000,
+    "skills": ["产品设计", "用户研究", "数据分析", "axure", "figma", "sql", "python", "敏捷开发", "项目管理", "市场调研"],
+    "education": {
+      "degree": "硕士",
+      "major": "工商管理",
+      "school": "北京大学",
+      "year": 2016
+    },
+    "experience": [
+      {
+        "company": "快手",
+        "position": "高级产品经理",
+        "start_date": "2021-03",
+        "end_date": "至今",
+        "description": "负责快手电商产品线规划和设计",
+        "achievements": ["主导电商直播功能设计，GMV增长300%", "优化用户购买流程，转化率提升25%", "管理10人产品团队，按时交付率100%"]
+      },
+      {
+        "company": "京东",
+        "position": "产品经理",
+        "start_date": "2018-06",
+        "end_date": "2021-02",
+        "description": "负责京东金融信贷产品设计",
+        "achievements": ["设计白条产品功能，用户量达到5000万", "推出智能风控系统，坏账率降低40%"]
+      },
+      {
+        "company": "小米",
+        "position": "产品助理",
+        "start_date": "2016-07",
+        "end_date": "2018-05",
+        "description": "参与MIUI系统功能设计和优化",
+        "achievements": ["参与MIUI 10重大版本设计", "用户满意度调研和产品改进"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "快手电商直播系统",
+        "description": "从0到1设计电商直播产品功能",
+        "highlights": ["月活用户突破1亿", "单场直播最高GMV超千万"]
+      }
+    ],
+    "certifications": ["PMP项目管理认证", "Google Analytics认证"],
+    "languages": ["中文", "英文"],
+    "summary": "8年产品管理经验，专精电商和金融产品设计。在快手负责电商产品线，从0到1搭建直播电商生态。具备完整的产品生命周期管理经验，擅长数据驱动的产品决策。"
+  },
+  "embedding_text": "高级产品经理 @ 快手\n高级产品经理 @ 快手\n\n产品设计 | 用户研究 | 数据分析 | axure | figma | sql | python | 敏捷开发 | 项目管理 | 市场调研\n产品设计 | 用户研究 | 数据分析 | axure | figma | sql | python | 敏捷开发 | 项目管理 | 市场调研\n\n高级产品经理 (2021-03 – 至今)\n主导电商直播功能设计，GMV增长300%，优化用户购买流程转化率提升25%\n\n产品经理 @ 京东\n产品助理 @ 小米",
+  "fts_document": "周丽华 高级产品经理 快手 产品设计 用户研究 数据分析 axure figma sql python 敏捷开发 项目管理 市场调研 8年产品管理经验，专精电商和金融产品设计。在快手负责电商产品线，从0到1搭建直播电商生态。具备完整的产品生命周期管理经验，擅长数据驱动的产品决策。 负责快手电商产品线规划和设计 主导电商直播功能设计，GMV增长300%，优化用户购买流程，转化率提升25%，管理10人产品团队，按时交付率100% 负责京东金融信贷产品设计 设计白条产品功能，用户量达到5000万，推出智能风控系统，坏账率降低40% 参与MIUI系统功能设计和优化 参与MIUI 10重大版本设计，用户满意度调研和产品改进 北京大学 快手电商直播系统 从0到1设计电商直播产品功能"
+} 

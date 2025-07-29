@@ -3,7 +3,7 @@
 import { Model } from '@/lib/types/models'
 import { cn } from '@/lib/utils'
 import { Message } from 'ai'
-import { ArrowUp, ChevronDown, Square, Zap } from 'lucide-react'
+import { ArrowUp, ChevronDown, Square, Zap, Layers } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
 import Textarea from 'react-textarea-autosize'
@@ -16,6 +16,7 @@ import { useSearch } from '@/lib/context/search-context'
 import { universalSearch, universalSearchStreaming, parseSearchStream } from '@/lib/api/search'
 import { useLanguage } from '@/lib/context/language-context'
 import { getCookie } from '@/lib/utils/cookies'
+
 
 // 生成唯一ID的函数
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -147,7 +148,11 @@ export function ChatPanel({
 
   // 添加原始用户输入保护
   const [originalUserInput, setOriginalUserInput] = useState<string>('')
-  const [isProcessingParse, setIsProcessingParse] = useState(false)
+  const [isProcessingParse, setIsProcessingParse] = useState(false)  
+
+  // ✨ 新增：Rerank 状态管理
+  const [rerankEnabled, setRerankEnabled] = useState(false)
+
 
   // 确保在组件挂载时立即同步cookie中的搜索模式
   useEffect(() => {
@@ -192,7 +197,10 @@ export function ChatPanel({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query: originalText })
+        body: JSON.stringify({ 
+          query: originalText,
+          searchType: searchMode  // 传递当前搜索类型
+        })
       })
 
       if (!response.ok) {
@@ -202,15 +210,39 @@ export function ChatPanel({
       const result = await response.json()
       console.log('✅ 解析结果:', result)
 
-      if (result.success && result.data && result.data.rewritten_query) {
+      if (result.success && result.data) {
         // 设置解析结果
         setParsedQuery(result.data)
         
-        // 使用解析后的查询文本重写输入框
-        const enhancedQuery = result.data.rewritten_query
-        await typeText(enhancedQuery)
+        // 🎯 新策略：调用专门的API生成结构化文本
+        const formatResponse = await fetch('/api/format-spark-result', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ parsedData: result.data })
+        })
         
-        console.log('📝 语句解析和重写完成')
+        if (formatResponse.ok) {
+          const formatResult = await formatResponse.json()
+          
+                  // 在输入框显示处理结果（用户可以看到和编辑）
+        const displayText = `【Spark Info.】
+结构化描述：${formatResult.embeddingText.substring(0, 150)}...
+关键词：${formatResult.ftsKeywords}
+原始查询：${result.data.rewritten_query || originalText}`
+          
+          await typeText(displayText)
+          
+                     console.log('✅ Spark解析完成:')
+           console.log('- Embedding文本:', formatResult.embeddingText)
+           console.log('- FTS关键词:', formatResult.ftsKeywords)
+           console.log('- 重写查询:', result.data.rewritten_query)
+         } else {
+           // 格式化失败，使用原始查询
+           await typeText(result.data.rewritten_query || originalText)
+           console.log('⚠️ 格式化失败，使用原始查询')
+         }
       } else {
         // 解析失败，恢复原始文本
         await typeText(originalText)
@@ -287,7 +319,7 @@ export function ChatPanel({
     )
   }
 
-  // 处理搜索提交 - 简化版本：骨架图 -> 一次性显示结果
+  // 处理搜索提交 - 简化版本：用户消息 -> 搜索进度（通过loading状态） -> 结果
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
@@ -305,7 +337,7 @@ export function ChatPanel({
     setIsLoading(true)
     
     try {
-      // 1. 添加用户消息（这会触发 ChatMessages 显示骨架屏）
+      // 1. 添加用户消息（带动画）
       const userMessage = {
         role: 'user' as const,
         content: userQuery,
@@ -364,6 +396,10 @@ export function ChatPanel({
         salary: string
         skills: string[]
         education: string[]
+        // 🆕 添加Spark处理标识
+        _sparkMode?: boolean
+        _ftsQuery?: string
+        _embeddingQuery?: string
       } = {
         location: extractedData.locations,
         experience: extractedData.experience,
@@ -372,46 +408,46 @@ export function ChatPanel({
         education: []
       }
 
-      // 🎯 新策略：Spark结构化数据 + #标签增强
+      // 🎯 新策略：Spark结构化embedding + FTS双路搜索
       if (parsedQuery) {
-        // 方案A：使用Spark智能解析的结构化数据
-        console.log('🧠 使用Spark智能解析结果')
+        console.log('🧠 使用Spark智能解析结果进行高质量搜索')
         
-        const sparkTerms = [
-          ...(parsedQuery.company || []),          // 🏢 Spark解析的公司
-          ...(parsedQuery.industry || []),         // 🏭 Spark解析的行业
-          ...(parsedQuery.role || []),             // 👤 Spark解析的角色
-          ...(parsedQuery.skills_must || []),      // 💪 Spark解析的核心技能
-          // 添加高置信度的相关技能
-          ...(parsedQuery.skills_related || [])
-            .filter(skill => skill.confidence >= 4)
-            .map(skill => skill.skill)
-        ].filter(Boolean)
+        // 调用API生成结构化文本
+        const formatResponse = await fetch('/api/format-spark-result', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ parsedData: parsedQuery })
+        })
         
-        if (sparkTerms.length > 0) {
-          enhancedQuery = `${queryWithoutTags} ${sparkTerms.join(' ')}`
-          console.log('🎯 Spark智能增强模式')
-          console.log('  - 基础查询:', queryWithoutTags)
-          console.log('  - Spark公司:', parsedQuery.company?.join(' ') || '无')
-          console.log('  - Spark行业:', parsedQuery.industry?.join(' ') || '无')
-          console.log('  - Spark角色:', parsedQuery.role?.join(' ') || '无')
-          console.log('  - Spark技能:', parsedQuery.skills_must?.join(' ') || '无')
-          console.log('  - 高质量相关技能:', parsedQuery.skills_related?.filter(s => s.confidence >= 4).map(s => s.skill).join(' ') || '无')
-          console.log('  - 最终查询:', enhancedQuery)
+        if (formatResponse.ok) {
+          const formatResult = await formatResponse.json()
+          
+          // 使用新的双路搜索策略
+          enhancedQuery = formatResult.embeddingText  // 用于生成向量的结构化文本
+          
+          console.log('🎯 Spark双路搜索模式:')
+          console.log('  - Embedding文本:', formatResult.embeddingText.substring(0, 100) + '...')
+          console.log('  - FTS关键词:', formatResult.ftsKeywords)
+          console.log('  - 原始查询:', userQuery)
+          
+          // 更新搜索过滤器使用Spark数据
+          searchFilters = {
+            location: parsedQuery.location || extractedData.locations,
+            experience: parsedQuery.experience_min?.toString() || extractedData.experience,
+            salary: parsedQuery.salary_min?.toString() || extractedData.salary,
+            skills: parsedQuery.skills_must || extractedData.skills,
+            education: parsedQuery.education || [],
+            // 🆕 添加特殊标记，告诉后端使用Spark模式
+            _sparkMode: true,
+            _ftsQuery: formatResult.ftsKeywords,
+            _embeddingQuery: formatResult.embeddingText
+          }
         } else {
-          console.log('🔄 Spark解析无有效结果，回退到基础查询')
+          console.log('🔄 格式化失败，回退到基础查询')
         }
-        
-        // 更新搜索过滤器使用Spark数据
-        searchFilters = {
-          location: parsedQuery.location || extractedData.locations,
-          experience: parsedQuery.experience_min?.toString() || extractedData.experience,
-          salary: parsedQuery.salary_min?.toString() || extractedData.salary,
-          skills: parsedQuery.skills_must || extractedData.skills,
-          education: parsedQuery.education || []
-        }
-        
-      } else if (tags.length > 0) {
+      } else {
         // 方案B：回退到#标签解析（用于非Spark查询）
         console.log('📋 回退到#标签解析模式')
         
@@ -430,8 +466,6 @@ export function ChatPanel({
         } else {
           console.log('🔄 回退到完整句子模式')
         }
-      } else {
-        console.log('📝 无增强数据，使用原始查询')
       }
 
       // 添加调试信息
@@ -442,27 +476,30 @@ export function ChatPanel({
       console.log('- 增强查询:', enhancedQuery)
       console.log('- 解析结果:', parsedQuery)
       console.log('- 过滤器:', searchFilters)
+      console.log('- 是否使用Spark:', searchFilters._sparkMode || false)
 
       // Use statically imported functions instead of dynamic import
       
       const response = await universalSearchStreaming({
         query: enhancedQuery,
         mode: searchMode,
-        filters: searchFilters
+        filters: searchFilters,
+        rerank: rerankEnabled  // ✨ 传递 rerank 参数
       })
       
       if (response.success && response.stream) {
-        // 4. 静默处理流式数据，只在完成时显示结果
+        // 4. 静默处理流式数据，收集结果
         await parseSearchStream(
           response.stream,
           // onChunk: 只打印日志，不更新UI
           (chunk) => {
             console.log('📡 流式更新:', chunk.type, chunk.data?.length || '')
           },
-          // onComplete: 一次性显示所有结果
+          // onComplete: 添加搜索结果到聊天中
           (finalResults) => {
             console.log('✅ 搜索完成, 总结果数:', finalResults.length)
             
+            // 直接添加assistant消息，会使用动画结果组件展示
             const assistantMessage = {
               role: 'assistant' as const,
               content: finalResults.length > 0 
@@ -471,18 +508,19 @@ export function ChatPanel({
               id: generateId()
             }
             append(assistantMessage)
-            setIsLoading(false) // 隐藏骨架屏，显示结果
+            setIsLoading(false)
           },
           // onError: 显示错误信息
           (error) => {
             console.error('搜索失败:', error)
+            setIsLoading(false)
+            
             const errorMessage = {
               role: 'assistant' as const,
               content: `❌ 搜索失败：${error}`,
               id: generateId()
             }
             append(errorMessage)
-            setIsLoading(false)
           }
         )
       } else {
@@ -490,13 +528,14 @@ export function ChatPanel({
       }
     } catch (error: any) {
       console.error('搜索错误:', error)
+      setIsLoading(false)
+      
       const errorMessage = {
         role: 'assistant' as const,
         content: `❌ 搜索过程中出现错误：${error.message}`,
         id: generateId()
       }
       append(errorMessage)
-      setIsLoading(false)
     }
   }
 
@@ -533,6 +572,11 @@ export function ChatPanel({
 
   // 动态placeholder
   const getPlaceholder = () => {
+    // 当Spark在处理中时，显示特殊的提示文本
+    if (isParsing || isErasing || isProcessingParse) {
+      return 'Spark Info 生成中...'
+    }
+    
     switch (searchMode) {
       case 'candidates':
         return t('chat.placeholder.candidates')
@@ -563,9 +607,11 @@ export function ChatPanel({
         </div>
       )}
 
+
+
       {/* 底部固定的输入区域 */}
       <div className={cn(
-        'fixed inset-x-0 bottom-0 z-[100]',
+        'fixed inset-x-0 bottom-[10px] z-[100]',
         'pointer-events-none' // 容器本身不拦截点击事件
       )}>
         {/* 白色背景层 - 只覆盖输入框区域，不延伸到sidebar */}
@@ -620,72 +666,195 @@ export function ChatPanel({
           <div className="relative flex items-center justify-between p-2 z-20">
             <div className="flex items-center gap-2">
               <ModeSwitcher onModeChange={setSearchMode} />
-              {/* Neura Spark 按钮 */}
+              {/* N-Spark 按钮 */}
               <Button
                 type="button"
                 variant="ghost"
                 disabled={!input.trim() || isParsing || isErasing || isLoading}
                 onClick={handleParseQuery}
-                title="Neura Spark - 智能解析语句"
+                title="N-Spark - 智能解析语句"
                 className={cn(
-                  "h-auto px-3 py-1.5 bg-transparent border-none rounded-full font-medium",
-                  "relative overflow-hidden group",
-                  "transition-all duration-300 ease-out",
-                  "hover:bg-gradient-to-r hover:from-purple-50/80 hover:to-violet-50/80",
-                  "hover:border hover:border-purple-200/60",
-                  "focus:outline-none focus:ring-2 focus:ring-purple-300/50",
-                  "active:scale-95",
+                  "h-auto px-3 py-1.5 bg-transparent border-none rounded-full text-base font-medium",
+                  "relative overflow-hidden group w-[110px]",  // 固定宽度防止位移
+                  "transition-all duration-500 cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                  "hover:bg-gradient-to-r hover:from-indigo-50/90 hover:to-purple-50/90",
+                  "hover:border hover:border-indigo-200/70",
+                  "hover:shadow-sm hover:shadow-indigo-100/50",
+                  "focus:outline-none focus:ring-2 focus:ring-indigo-300/40 focus:ring-offset-1",
+                  "active:scale-96 active:transition-transform active:duration-150",
                   "disabled:opacity-50 disabled:pointer-events-none",
-                  // 处理中状态的特殊样式
+                  // 处理中状态的特殊样式 - 更成熟的蓝紫渐变效果
                   (isParsing || isErasing) && [
-                    "bg-gradient-to-r from-purple-100 to-violet-100",
-                    "border border-purple-300/60",
-                    "shadow-lg shadow-purple-200/50",
-                    "animate-pulse"
+                    "bg-gradient-to-r from-indigo-50/95 via-purple-50/90 to-indigo-50/95",
+                    "border border-indigo-300/50",
+                    "shadow-lg shadow-indigo-200/40",
+                    "backdrop-blur-sm",
+                    "scale-105"
                   ]
                 )}
               >
-                {/* 背景炫光效果 - 仅在处理中显示 */}
+                {/* 高性能流光效果 - 仅在处理中显示 */}
                 {(isParsing || isErasing) && (
-                  <div className="absolute inset-0 overflow-hidden rounded-full">
+                  <>
+                    {/* 主流光 - 使用硬件加速 */}
                     <div 
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-300/30 to-transparent"
+                      className="absolute inset-0 overflow-hidden rounded-full"
                       style={{
-                        background: 'linear-gradient(90deg, transparent 0%, rgba(147, 51, 234, 0.15) 25%, rgba(168, 85, 247, 0.3) 50%, rgba(147, 51, 234, 0.15) 75%, transparent 100%)',
-                        width: '150%',
-                        height: '100%',
-                        animation: (isParsing || isErasing) ? 'sparkle-shimmer 2s ease-in-out infinite' : 'none',
-                        transform: 'translateX(-50%)'
+                        willChange: 'transform'
                       }}
-                    />
-                  </div>
+                    >
+                      <div 
+                        className="absolute inset-0 h-full"
+                        style={{
+                          background: 'linear-gradient(120deg, transparent 0%, rgba(99, 102, 241, 0.1) 20%, rgba(129, 140, 248, 0.3) 40%, rgba(99, 102, 241, 0.1) 60%, transparent 80%)',
+                          width: '150%',
+                          height: '100%',
+                          animation: 'sparkle-flow 2.8s linear infinite',
+                          transform: 'translate3d(-100%, 0, 0)',
+                          willChange: 'transform'
+                        }}
+                      />
+                    </div>
+                    
+                    {/* 次流光 - 简化版本 */}
+                    <div 
+                      className="absolute inset-0 overflow-hidden rounded-full"
+                      style={{
+                        willChange: 'transform'
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-0 h-full"
+                        style={{
+                          background: 'linear-gradient(100deg, transparent 30%, rgba(129, 140, 248, 0.15) 50%, transparent 70%)',
+                          width: '120%',
+                          height: '100%',
+                          animation: 'sparkle-shimmer 3.5s linear infinite',
+                          animationDelay: '0.8s',
+                          transform: 'translate3d(-50%, 0, 0)',
+                          willChange: 'transform'
+                        }}
+                      />
+                    </div>
+                  </>
                 )}
                 
-                {/* 呼吸光环效果 - 仅在处理中显示 */}
+                {/* 高性能呼吸光环 - 仅在处理中显示 */}
                 {(isParsing || isErasing) && (
                   <div 
-                    className="absolute inset-0 rounded-full border-2 border-purple-400/40"
+                    className="absolute inset-0 rounded-full border border-indigo-400/30"
                     style={{
-                      animation: 'sparkle-breathing 1.5s ease-in-out infinite alternate'
+                      animation: 'sparkle-breathing 3s ease-in-out infinite',
+                      willChange: 'transform, box-shadow'
                     }}
                   />
                 )}
 
                 <div className={cn(
-                  "flex items-center space-x-2 relative z-10",
-                  (isParsing || isErasing) && "text-purple-700"
+                  "flex items-center space-x-2 relative z-10 transition-colors duration-500",
+                  (isParsing || isErasing) && "text-indigo-700"
                 )}>
                   <Zap className={cn(
-                    "h-4 w-4 transition-all duration-300",
-                    (isParsing || isErasing) && "text-purple-600 animate-pulse"
-                  )} />
-                  <span className="text-sm font-medium">
-                    {isParsing ? "正在解析..." : isErasing ? "处理中..." : "Neura Spark"}
+                    "h-4 w-4 transition-all duration-300 ease-out",
+                    (isParsing || isErasing) && "text-indigo-600 drop-shadow-sm",
+                    !(isParsing || isErasing) && "hover:scale-105"
+                  )} 
+                  style={{
+                    animation: (isParsing || isErasing) ? 'sparkle-pulse 2.4s ease-in-out infinite' : 'none',
+                    willChange: (isParsing || isErasing) ? 'transform' : 'auto'
+                  }}
+                  />
+                  <span className="text-sm font-medium transition-all duration-400 ease-out">
+                    {isParsing ? "sparking..." : isErasing ? "处理中..." : "N-Spark"}
                   </span>
                 </div>
 
                 {/* 处理成功的微光效果 */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400/0 via-purple-400/10 to-purple-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/0 via-indigo-400/10 to-indigo-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </Button>
+
+              {/* ✨ 新增：Rerank 按钮 */}
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setRerankEnabled(!rerankEnabled)}
+                title={rerankEnabled ? "Rerank 已开启 - 二阶段智能重排" : "Rerank 已关闭 - 一阶段向量召回"}
+                className={cn(
+                  "h-auto px-3 py-1.5 bg-transparent border-none rounded-full text-base font-medium",
+                  "relative overflow-hidden group",
+                  "transition-all duration-500 cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                  "focus:outline-none focus:ring-0 focus:ring-offset-0",  // 完全移除 focus ring
+                  "active:scale-96 active:transition-transform active:duration-150",
+                  // 激活状态样式 - 蓝色主题
+                  rerankEnabled ? [
+                    "bg-gradient-to-r from-blue-50/95 via-sky-50/90 to-blue-50/95",
+                    "border border-blue-300/50",
+                    "shadow-lg shadow-blue-200/40",
+                    "backdrop-blur-sm",
+                    "text-blue-700",
+                    "hover:from-blue-100/95 hover:via-sky-100/90 hover:to-blue-100/95"
+                  ] : [
+                    "hover:bg-gradient-to-r hover:from-blue-50/90 hover:to-sky-50/90",
+                    "hover:border hover:border-blue-200/70",
+                    "hover:shadow-sm hover:shadow-blue-100/50"
+                  ]
+                )}
+              >
+                {/* 激活状态的流光效果 */}
+                {rerankEnabled && (
+                  <>
+                    {/* 主流光 - 蓝色主题 */}
+                    <div 
+                      className="absolute inset-0 overflow-hidden rounded-full"
+                      style={{
+                        willChange: 'transform'
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-0 h-full"
+                        style={{
+                          background: 'linear-gradient(120deg, transparent 0%, rgba(59, 130, 246, 0.1) 20%, rgba(14, 165, 233, 0.3) 40%, rgba(59, 130, 246, 0.1) 60%, transparent 80%)',
+                          width: '150%',
+                          height: '100%',
+                          animation: 'rerank-flow 3.2s linear infinite',
+                          transform: 'translate3d(-100%, 0, 0)',
+                          willChange: 'transform'
+                        }}
+                      />
+                    </div>
+
+                    {/* 呼吸光环 */}
+                    <div 
+                      className="absolute inset-0 rounded-full border border-blue-400/30"
+                      style={{
+                        animation: 'rerank-breathing 3.5s ease-in-out infinite',
+                        willChange: 'transform, box-shadow'
+                      }}
+                    />
+                  </>
+                )}
+
+                <div className={cn(
+                  "flex items-center space-x-2 relative z-10 transition-colors duration-500",
+                  rerankEnabled && "text-blue-700"
+                )}>
+                  <Layers className={cn(
+                    "h-4 w-4 transition-all duration-300 ease-out",
+                    rerankEnabled && "text-blue-600 drop-shadow-sm",
+                    !rerankEnabled && "hover:scale-105"
+                  )} 
+                  style={{
+                    animation: rerankEnabled ? 'rerank-pulse 2.8s ease-in-out infinite' : 'none',
+                    willChange: rerankEnabled ? 'transform' : 'auto'
+                  }}
+                  />
+                  <span className="text-sm font-medium transition-all duration-400 ease-out">
+                    {rerankEnabled ? "Rerank On" : "Rerank"}
+                  </span>
+                </div>
+
+                {/* 悬停微光效果 */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/0 via-blue-400/10 to-blue-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Button>
             </div>
             <div className="flex items-center gap-2">

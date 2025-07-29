@@ -1,0 +1,56 @@
+{
+  "candidate": {
+    "name": "马晓东",
+    "email": "maxiaodong@email.com",
+    "phone": "13800001010",
+    "age": 23,
+    "current_title": "软件开发实习生",
+    "current_company": "腾讯实习",
+    "location": "深圳",
+    "years_of_experience": 1,
+    "expected_salary_min": 12000,
+    "expected_salary_max": 18000,
+    "skills": ["java", "python", "mysql", "git", "linux", "spring", "mybatis", "html", "css", "javascript"],
+    "education": {
+      "degree": "本科",
+      "major": "软件工程",
+      "school": "华南理工大学",
+      "year": 2024
+    },
+    "experience": [
+      {
+        "company": "腾讯",
+        "position": "软件开发实习生",
+        "start_date": "2023-07",
+        "end_date": "2024-01",
+        "description": "参与QQ音乐后端接口开发",
+        "achievements": ["独立完成3个API接口开发", "参与代码重构，性能提升20%", "获得实习优秀评价"]
+      },
+      {
+        "company": "小红书",
+        "position": "算法实习生",
+        "start_date": "2023-01",
+        "end_date": "2023-06",
+        "description": "参与推荐算法优化项目",
+        "achievements": ["协助优化推荐模型，点击率提升5%", "完成数据清洗和特征工程任务"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "校园二手交易平台",
+        "description": "基于Spring Boot的全栈项目",
+        "highlights": ["支持1000+用户注册", "获得校级创新项目一等奖"]
+      },
+      {
+        "name": "智能聊天机器人",
+        "description": "基于深度学习的对话系统",
+        "highlights": ["使用Transformer架构", "获得ACM竞赛银奖"]
+      }
+    ],
+    "certifications": ["CET-6", "计算机二级"],
+    "languages": ["中文", "英文"],
+    "summary": "应届毕业生，计算机基础扎实，有腾讯和小红书实习经验。熟悉Java后端开发和机器学习基础，具备良好的学习能力和团队协作精神。在校期间多次获得奖学金和竞赛奖项。"
+  },
+  "embedding_text": "软件开发实习生 @ 腾讯实习\n软件开发实习生 @ 腾讯实习\n\njava | python | mysql | git | linux | spring | mybatis | html | css | javascript\njava | python | mysql | git | linux | spring | mybatis | html | css | javascript\n\n软件开发实习生 (2023-07 – 2024-01)\n独立完成3个API接口开发，参与代码重构性能提升20%\n\n算法实习生 @ 小红书\n应届毕业生 @ 华南理工大学",
+  "fts_document": "马晓东 软件开发实习生 腾讯实习 java python mysql git linux spring mybatis html css javascript 应届毕业生，计算机基础扎实，有腾讯和小红书实习经验。熟悉Java后端开发和机器学习基础，具备良好的学习能力和团队协作精神。在校期间多次获得奖学金和竞赛奖项。 参与QQ音乐后端接口开发 独立完成3个API接口开发，参与代码重构，性能提升20%，获得实习优秀评价 参与推荐算法优化项目 协助优化推荐模型，点击率提升5%，完成数据清洗和特征工程任务 华南理工大学 校园二手交易平台 基于Spring Boot的全栈项目"
+} 

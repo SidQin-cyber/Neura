@@ -138,7 +138,20 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
     try {
       const parsed = JSON.parse(content)
       
-      // 如果是单个对象，自动转换为数组
+      // 检查是否是新格式：包含 data 数组的对象
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && parsed.data && Array.isArray(parsed.data)) {
+        // 如果有全局的 embedding_text 和 fts_document，分发给每个候选人
+        if (parsed.embedding_text || parsed.fts_document) {
+          return parsed.data.map((item: any) => ({
+            ...item,
+            embedding_text: item.embedding_text || parsed.embedding_text,
+            fts_document: item.fts_document || parsed.fts_document
+          }))
+        }
+        return parsed.data // 直接返回 data 数组
+      }
+      
+      // 如果是单个候选人/职位对象，自动转换为数组
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         return [parsed]
       }

@@ -172,7 +172,7 @@ console.log(formatted) // "25k-35k"
 - 数据清洗和验证
 
 ### 3. 业务层
-- `supabase/functions/process-resume-dual/index.ts`: 简历处理
+- `lib/embedding/openai-embedding.ts`: 统一的 embedding 处理
 - 增强的AI解析提示
 - 双模型embedding生成
 

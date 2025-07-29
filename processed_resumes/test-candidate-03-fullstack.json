@@ -1,0 +1,51 @@
+{
+  "candidate": {
+    "name": "陈思雨",
+    "email": "chensiyu@email.com",
+    "phone": "13800001003",
+    "age": 26,
+    "current_title": "全栈开发工程师",
+    "current_company": "腾讯",
+    "location": "深圳",
+    "years_of_experience": 4,
+    "expected_salary_min": 22000,
+    "expected_salary_max": 32000,
+    "skills": ["python", "django", "fastapi", "react", "typescript", "postgresql", "mongodb", "aws", "docker", "git"],
+    "education": {
+      "degree": "本科",
+      "major": "信息管理与信息系统",
+      "school": "华南理工大学",
+      "year": 2020
+    },
+    "experience": [
+      {
+        "company": "腾讯",
+        "position": "全栈开发工程师",
+        "start_date": "2022-08",
+        "end_date": "至今",
+        "description": "负责微信小程序后台管理系统开发",
+        "achievements": ["开发小程序数据分析平台，服务商家10万+", "前后端一体化开发，提升开发效率30%", "设计RESTful API，支持高并发访问"]
+      },
+      {
+        "company": "滴滴",
+        "position": "Python开发工程师",
+        "start_date": "2020-07",
+        "end_date": "2022-07",
+        "description": "负责司机端数据处理和分析系统",
+        "achievements": ["优化数据处理流程，处理速度提升50%", "开发实时监控系统，故障响应时间缩短60%"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "小程序商家管理平台",
+        "description": "基于React+Python的商家数据管理平台",
+        "highlights": ["支持实时数据展示", "日处理数据量1000万条"]
+      }
+    ],
+    "certifications": ["AWS云架构师", "Python高级开发认证"],
+    "languages": ["中文", "英文"],
+    "summary": "4年全栈开发经验，精通Python后端和React前端开发。在腾讯负责微信小程序生态系统建设，具备完整的产品开发能力。擅长数据处理和云原生架构设计。"
+  },
+  "embedding_text": "全栈开发工程师 @ 腾讯\n全栈开发工程师 @ 腾讯\n\npython | django | fastapi | react | typescript | postgresql | mongodb | aws | docker | git\npython | django | fastapi | react | typescript | postgresql | mongodb | aws | docker | git\n\n全栈开发工程师 (2022-08 – 至今)\n开发小程序数据分析平台，服务商家10万+，前后端一体化开发提升效率30%\n\nPython开发工程师 @ 滴滴\n全栈开发工程师 @ 美团",
+  "fts_document": "陈思雨 全栈开发工程师 腾讯 python django fastapi react typescript postgresql mongodb aws docker git 4年全栈开发经验，精通Python后端和React前端开发。在腾讯负责微信小程序生态系统建设，具备完整的产品开发能力。擅长数据处理和云原生架构设计。 负责微信小程序后台管理系统开发 开发小程序数据分析平台，服务商家10万+，前后端一体化开发，提升开发效率30%，设计RESTful API，支持高并发访问 负责司机端数据处理和分析系统 优化数据处理流程，处理速度提升50%，开发实时监控系统，故障响应时间缩短60% 华南理工大学 小程序商家管理平台 基于React+Python的商家数据管理平台"
+} 

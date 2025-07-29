@@ -1,0 +1,87 @@
+{
+  "candidate": {
+    "name": "测试候选人",
+    "email": "test@example.com",
+    "phone": "13800138000",
+    "age": 28,
+    "current_title": "高级软件工程师",
+    "current_company": "阿里巴巴",
+    "location": "杭州",
+    "summary": "拥有5年后端开发经验的高级软件工程师，专注于分布式系统和微服务架构。熟练掌握Java、Python等编程语言，具备大型互联网项目开发经验。曾主导多个核心业务系统的设计与实现，系统处理能力提升300%以上。",
+    "skills": ["java", "python", "spring", "mysql", "redis", "kafka", "docker", "kubernetes"],
+    "years_of_experience": 5,
+    "expected_salary_min": 35000,
+    "expected_salary_max": 45000,
+    "job_search_status": "观望机会",
+    "education": [
+      {
+        "school": "浙江大学",
+        "degree": "本科",
+        "major": "计算机科学与技术",
+        "graduation_year": 2019,
+        "start_date": "2015-09",
+        "end_date": "2019-06"
+      }
+    ],
+    "experience": [
+      {
+        "company": "阿里巴巴",
+        "position": "高级软件工程师",
+        "start_date": "2021-03",
+        "end_date": "Present",
+        "description": "负责电商核心交易系统的开发与维护，参与分布式架构设计",
+        "achievements": [
+          "主导交易系统重构，系统吞吐量提升300%，响应时间降低至50ms以内",
+          "设计并实现了分布式缓存架构，缓存命中率达到95%以上",
+          "负责团队代码评审，代码质量评分提升至90%以上"
+        ],
+        "technologies": ["java", "spring", "mysql", "redis", "kafka"]
+      },
+      {
+        "company": "腾讯",
+        "position": "软件工程师",
+        "start_date": "2019-07",
+        "end_date": "2021-03",
+        "description": "参与微信支付后端系统开发，负责支付流程优化",
+        "achievements": [
+          "优化支付流程，支付成功率提升至99.9%",
+          "参与开发新支付接口，日处理量达到1000万笔"
+        ],
+        "technologies": ["java", "python", "mysql", "redis"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "分布式交易系统",
+        "description": "设计并实现高并发分布式交易系统",
+        "role": "技术负责人",
+        "technologies": ["java", "spring", "mysql", "redis", "kafka", "docker"],
+        "highlights": [
+          "系统支持每秒10万笔交易处理",
+          "实现了99.99%的系统可用性",
+          "采用微服务架构，支持弹性扩容"
+        ]
+      }
+    ],
+    "certifications": [
+      {
+        "name": "AWS解决方案架构师",
+        "issuer": "Amazon",
+        "date": "2022-06"
+      }
+    ],
+    "languages": [
+      {
+        "language": "中文",
+        "proficiency": "母语"
+      },
+      {
+        "language": "英语",
+        "proficiency": "流利"
+      }
+    ],
+    "relocation_preferences": ["杭州", "上海", "深圳"]
+  },
+  "embedding_text": "[核心定位]\n高级软件工程师 @ 阿里巴巴\n高级软件工程师 @ 阿里巴巴\n\n[技能关键词]\njava | python | spring | mysql | redis | kafka | docker | kubernetes\njava | python | spring | mysql | redis | kafka | docker | kubernetes\n\n[最近经历]\n高级软件工程师 (2021-03 – Present)\n主导交易系统重构，系统吞吐量提升300%，响应时间降低至50ms以内\n\n[历史经历]\n软件工程师 @ 腾讯",
+  "fts_document": "测试候选人 高级软件工程师 阿里巴巴 java python spring mysql redis kafka docker kubernetes 拥有5年后端开发经验的高级软件工程师，专注于分布式系统和微服务架构。熟练掌握Java、Python等编程语言，具备大型互联网项目开发经验。曾主导多个核心业务系统的设计与实现，系统处理能力提升300%以上。 负责电商核心交易系统的开发与维护，参与分布式架构设计 主导交易系统重构，系统吞吐量提升300%，响应时间降低至50ms以内 设计并实现了分布式缓存架构，缓存命中率达到95%以上 负责团队代码评审，代码质量评分提升至90%以上 参与微信支付后端系统开发，负责支付流程优化 优化支付流程，支付成功率提升至99.9% 参与开发新支付接口，日处理量达到1000万笔 浙江大学 计算机科学与技术 分布式交易系统 设计并实现高并发分布式交易系统 系统支持每秒10万笔交易处理 实现了99.99%的系统可用性 采用微服务架构，支持弹性扩容"
+} 

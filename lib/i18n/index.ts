@@ -29,7 +29,7 @@ export const translations = {
     'search.noResults.jobs': 'No matching positions found, try adjusting search criteria.',
     
     // Mode Switcher
-    'mode.candidates': 'Find Candidates',
+    'mode.candidates': 'Find Cdds',
     'mode.jobs': 'Find Jobs',
     'mode.searchMode': 'Search Mode',
     'mode.currentMode': 'Current search mode',

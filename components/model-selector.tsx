@@ -48,22 +48,14 @@ export function ModeSwitcher({ onModeChange }: ModeSwitcherProps) {
     }
   ]
 
+  // 初始化时从cookie读取保存的模式
   useEffect(() => {
     const savedMode = getCookie('searchMode') as SearchMode
     if (savedMode && (savedMode === 'candidates' || savedMode === 'jobs')) {
       setMode(savedMode)
-      // 确保同步调用onModeChange，以防父组件需要同步状态
       onModeChange?.(savedMode)
     }
-  }, [])
-
-  // 新增：监听onModeChange变化，在组件外部状态变化时同步本地状态
-  useEffect(() => {
-    const savedMode = getCookie('searchMode') as SearchMode
-    if (savedMode && savedMode !== mode) {
-      setMode(savedMode)
-    }
-  }, [onModeChange, mode])
+  }, [onModeChange])
 
   const handleModeSelect = (selectedMode: SearchMode) => {
     setMode(selectedMode)
@@ -99,7 +91,7 @@ export function ModeSwitcher({ onModeChange }: ModeSwitcherProps) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-48 p-1 z-[200]" align="start">
+              <PopoverContent className="w-48 p-1 z-[250]" align="start">
         <Command className="rounded-xl">
           <CommandList>
             <CommandEmpty>No mode found.</CommandEmpty>
@@ -107,6 +99,7 @@ export function ModeSwitcher({ onModeChange }: ModeSwitcherProps) {
               {searchModes.map(modeOption => {
                 const Icon = modeOption.icon
                 const isSelected = mode === modeOption.id
+                
                   return (
                     <CommandItem
                     key={modeOption.id}
@@ -115,8 +108,12 @@ export function ModeSwitcher({ onModeChange }: ModeSwitcherProps) {
                     className={`flex justify-between px-3 py-1.5 mx-1 my-0.5 rounded-full hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
                       isSelected 
                         ? 'bg-gray-100 border border-gray-200 shadow-sm' 
-                        : 'border border-transparent'
+                        : 'bg-transparent border border-transparent'
                     }`}
+                    style={{
+                      backgroundColor: isSelected ? '#f3f4f6' : 'transparent',
+                      borderColor: isSelected ? '#e5e7eb' : 'transparent'
+                    }}
                     >
                     <div className="flex items-center space-x-2">
                       <Icon className={`h-4 w-4 ${isSelected ? 'text-gray-700' : 'text-gray-500'}`} />

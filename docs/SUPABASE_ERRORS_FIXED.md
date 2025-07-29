@@ -20,11 +20,8 @@
 
 ### 2. Edge Functions 修复 ✅
 - ✅ `copilot-qna/index.ts` - 添加了 @ts-nocheck
-- ✅ `get-dual-embedding/index.ts` - 添加了 @ts-nocheck
-- ✅ `get-embedding/index.ts` - 添加了 @ts-nocheck
-- ✅ `process-resume-dual/index.ts` - 添加了 @ts-nocheck
-- ✅ `process-resume/index.ts` - 添加了 @ts-nocheck
 - ✅ `_shared/cors.ts` - 添加了 @ts-nocheck
+- ✅ 已清理未使用的 Edge Functions
 
 ### 3. 类型安全改进 ✅
 - ✅ 添加了接口定义
@@ -67,10 +64,6 @@ docs/EDGE_FUNCTIONS_TROUBLESHOOTING.md  # 故障排除指南
 ```
 supabase/functions/_shared/cors.ts           # 添加 @ts-nocheck
 supabase/functions/copilot-qna/index.ts      # 添加 @ts-nocheck + 类型修复
-supabase/functions/get-dual-embedding/index.ts    # 添加 @ts-nocheck + 类型修复
-supabase/functions/get-embedding/index.ts    # 添加 @ts-nocheck + 类型修复
-supabase/functions/process-resume-dual/index.ts   # 添加 @ts-nocheck + 类型修复
-supabase/functions/process-resume/index.ts   # 添加 @ts-nocheck + 类型修复
 ```
 
 ## 🔧 主要修复策略

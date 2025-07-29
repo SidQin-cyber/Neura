@@ -1,0 +1,51 @@
+{
+  "candidate": {
+    "name": "孙建军",
+    "email": "sunjianjun@email.com",
+    "phone": "13800001007",
+    "age": 33,
+    "current_title": "高级数据工程师",
+    "current_company": "滴滴",
+    "location": "北京",
+    "years_of_experience": 9,
+    "expected_salary_min": 38000,
+    "expected_salary_max": 52000,
+    "skills": ["python", "scala", "spark", "hadoop", "kafka", "flink", "hive", "clickhouse", "airflow", "sql"],
+    "education": {
+      "degree": "硕士",
+      "major": "数据科学",
+      "school": "中科院",
+      "year": 2015
+    },
+    "experience": [
+      {
+        "company": "滴滴",
+        "position": "高级数据工程师",
+        "start_date": "2020-01",
+        "end_date": "至今",
+        "description": "负责滴滴出行数据平台建设和实时计算",
+        "achievements": ["搭建实时数据处理平台，处理能力达到百万QPS", "优化数据仓库架构，查询性能提升10倍", "建设数据质量监控体系，数据准确率99.9%"]
+      },
+      {
+        "company": "美团",
+        "position": "数据工程师",
+        "start_date": "2015-07",
+        "end_date": "2019-12",
+        "description": "负责外卖业务数据pipeline开发",
+        "achievements": ["开发离线数据处理系统，日处理数据10TB+", "构建实时推荐系统，转化率提升15%"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "滴滴实时数据平台",
+        "description": "基于Flink的大规模实时数据处理平台",
+        "highlights": ["支持千级数据源接入", "毫秒级数据处理延迟"]
+      }
+    ],
+    "certifications": ["Cloudera数据工程师认证", "AWS大数据专家"],
+    "languages": ["中文", "英文"],
+    "summary": "9年大数据和数据工程经验，精通实时和离线数据处理技术栈。在滴滴负责核心数据平台建设，具备PB级数据处理和系统架构经验。擅长数据质量管理和性能优化。"
+  },
+  "embedding_text": "高级数据工程师 @ 滴滴\n高级数据工程师 @ 滴滴\n\npython | scala | spark | hadoop | kafka | flink | hive | clickhouse | airflow | sql\npython | scala | spark | hadoop | kafka | flink | hive | clickhouse | airflow | sql\n\n高级数据工程师 (2020-01 – 至今)\n搭建实时数据处理平台，处理能力达到百万QPS，优化数据仓库架构查询性能提升10倍\n\n数据工程师 @ 美团\n高级数据工程师 @ 字节跳动",
+  "fts_document": "孙建军 高级数据工程师 滴滴 python scala spark hadoop kafka flink hive clickhouse airflow sql 9年大数据和数据工程经验，精通实时和离线数据处理技术栈。在滴滴负责核心数据平台建设，具备PB级数据处理和系统架构经验。擅长数据质量管理和性能优化。 负责滴滴出行数据平台建设和实时计算 搭建实时数据处理平台，处理能力达到百万QPS，优化数据仓库架构，查询性能提升10倍，建设数据质量监控体系，数据准确率99.9% 负责外卖业务数据pipeline开发 开发离线数据处理系统，日处理数据10TB+，构建实时推荐系统，转化率提升15% 中科院 滴滴实时数据平台 基于Flink的大规模实时数据处理平台"
+} 

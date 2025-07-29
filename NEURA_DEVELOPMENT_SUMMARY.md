@@ -36,9 +36,7 @@ Neura 是一个基于 AI 的智能招聘平台，通过语义搜索和向量匹�
 - **文件位置**: `supabase/functions/`
 - **功能**: 后端 AI 处理逻辑
 - **组件**:
-  - `process-resume/index.ts` - 简历自动解析和向量化
-  - `get-embedding/index.ts` - 文本向量嵌入生成
-  - `copilot-qna/index.ts` - AI 问答助手
+  - `copilot-qna/index.ts` - AI 助手问答功能
   - `_shared/cors.ts` - CORS 配置
 
 ### 4. TypeScript 类型定义

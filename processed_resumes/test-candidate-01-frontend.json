@@ -1,0 +1,51 @@
+{
+  "candidate": {
+    "name": "李小明",
+    "email": "lixiaoming@email.com",
+    "phone": "13800001001",
+    "age": 28,
+    "current_title": "高级前端开发工程师",
+    "current_company": "字节跳动",
+    "location": "北京",
+    "years_of_experience": 5,
+    "expected_salary_min": 25000,
+    "expected_salary_max": 35000,
+    "skills": ["javascript", "typescript", "react", "vue", "webpack", "vite", "nodejs", "css3", "html5", "git"],
+    "education": {
+      "degree": "本科",
+      "major": "计算机科学与技术",
+      "school": "北京理工大学",
+      "year": 2019
+    },
+    "experience": [
+      {
+        "company": "字节跳动",
+        "position": "高级前端开发工程师",
+        "start_date": "2021-06",
+        "end_date": "至今",
+        "description": "负责抖音Web端核心功能开发",
+        "achievements": ["优化首屏加载速度提升40%", "重构组件库，代码复用率提升60%", "带领3人前端团队完成H5项目"]
+      },
+      {
+        "company": "美团",
+        "position": "前端开发工程师",
+        "start_date": "2019-07",
+        "end_date": "2021-05",
+        "description": "负责美团外卖前端页面开发",
+        "achievements": ["开发商家端管理系统，日活用户2万+", "实现移动端适配方案"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "抖音创作者中心重构",
+        "description": "使用React+TypeScript重构创作者中心",
+        "highlights": ["用户满意度提升30%", "页面加载速度提升50%"]
+      }
+    ],
+    "certifications": ["React开发者认证", "前端工程师高级认证"],
+    "languages": ["中文", "英文"],
+    "summary": "5年前端开发经验，专精React和Vue技术栈。在字节跳动负责抖音Web端核心功能开发，具备大型项目架构设计能力。擅长性能优化和组件库建设，有丰富的团队协作经验。"
+  },
+  "embedding_text": "高级前端开发工程师 @ 字节跳动\n高级前端开发工程师 @ 字节跳动\n\njavascript | typescript | react | vue | webpack | vite | nodejs | css3 | html5 | git\njavascript | typescript | react | vue | webpack | vite | nodejs | css3 | html5 | git\n\n高级前端开发工程师 (2021-06 – 至今)\n优化首屏加载速度提升40%，重构组件库代码复用率提升60%\n\n前端开发工程师 @ 美团\n前端开发工程师 @ 腾讯",
+  "fts_document": "李小明 高级前端开发工程师 字节跳动 javascript typescript react vue webpack vite nodejs css3 html5 git 5年前端开发经验，专精React和Vue技术栈。在字节跳动负责抖音Web端核心功能开发，具备大型项目架构设计能力。擅长性能优化和组件库建设，有丰富的团队协作经验。 负责抖音Web端核心功能开发 优化首屏加载速度提升40%，重构组件库，代码复用率提升60%，带领3人前端团队完成H5项目 负责美团外卖前端页面开发 开发商家端管理系统，日活用户2万+，实现移动端适配方案 北京理工大学 抖音创作者中心重构 使用React+TypeScript重构创作者中心"
+} 

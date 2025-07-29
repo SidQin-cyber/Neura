@@ -71,28 +71,55 @@ export async function POST(request: NextRequest) {
         projects: item.projects || null,
         relocation_preferences: Array.isArray(item.relocation_preferences) ? item.relocation_preferences : null,
         raw_data: item,
-        status: 'active'
+        status: 'active',
+        fts_document: item.fts_document || null  // 🔧 添加fts_document字段
       }
       
-      // 生成向量化文本
-      const rawEmbeddingText = createCandidateEmbeddingText(candidateData)
-      console.log(`生成候选人 ${candidateData.name} 的原始向量化文本:`, rawEmbeddingText)
+      // 优先使用用户提供的embedding_text，否则生成
+      let embeddingText
+      if (item.embedding_text && typeof item.embedding_text === 'string' && item.embedding_text.trim()) {
+        embeddingText = item.embedding_text.trim()
+        console.log(`📋 使用用户提供的embedding文本 for ${candidateData.name}:`, embeddingText.substring(0, 100) + '...')
+      } else {
+        // 生成向量化文本
+        const rawEmbeddingText = createCandidateEmbeddingText(candidateData)
+        console.log(`🔄 生成候选人 ${candidateData.name} 的原始向量化文本:`, rawEmbeddingText.substring(0, 100) + '...')
+        
+        // 标准化文本（词典 + LLM）
+        embeddingText = await normalizeTextWithCache(rawEmbeddingText)
+        console.log(`✅ 候选人 ${candidateData.name} 标准化后文本:`, embeddingText.substring(0, 100) + '...')
+      }
       
-      // 标准化文本（词典 + LLM）
-      const normalizedText = await normalizeTextWithCache(rawEmbeddingText)
-      console.log(`候选人 ${candidateData.name} 标准化后文本:`, normalizedText)
+      // 🔍 添加FTS数据调试
+      console.log(`🔍 ${candidateData.name} FTS数据检查:`, {
+        hasFtsDocument: !!item.fts_document,
+        ftsDocumentType: typeof item.fts_document,
+        ftsDocumentLength: item.fts_document ? item.fts_document.length : 0,
+        ftsDocumentPreview: item.fts_document ? item.fts_document.substring(0, 50) + '...' : 'NULL'
+      })
       
-      // 验证标准化结果
-      const validation = validateNormalizedText(normalizedText)
-      if (!validation.isValid) {
-        console.error(`❌ 候选人 ${candidateData.name} 文本标准化验证失败:`, validation.errors)
-        return NextResponse.json({ 
-          error: `候选人 ${candidateData.name} 数据标准化失败: ${validation.errors.join(', ')}` 
-        }, { status: 400 })
+      // 验证文本结果（如果是用户提供的embedding_text，跳过严格验证）
+      if (!item.embedding_text) {
+        const validation = validateNormalizedText(embeddingText)
+        if (!validation.isValid) {
+          console.error(`❌ 候选人 ${candidateData.name} 文本验证失败:`, validation.errors)
+          return NextResponse.json({ 
+            error: `候选人 ${candidateData.name} 数据验证失败: ${validation.errors.join(', ')}` 
+          }, { status: 400 })
+        }
+      } else {
+        // 用户提供的文本只做基础检查
+        if (embeddingText.trim().length < 10) {
+          console.error(`❌ 候选人 ${candidateData.name} 用户提供的embedding文本过短`)
+          return NextResponse.json({ 
+            error: `候选人 ${candidateData.name} embedding文本内容过少` 
+          }, { status: 400 })
+        }
+        console.log(`✅ 用户提供的embedding文本通过基础验证`)
       }
       
       // 生成向量化
-      const embedding = await generateEmbedding(normalizedText)
+      const embedding = await generateEmbedding(embeddingText)
       if (embedding) {
         // 添加详细的调试信息
         console.log(`🔍 ${candidateData.name} embedding原始格式:`, {
@@ -130,6 +157,8 @@ export async function POST(request: NextRequest) {
       })
 
       // ✅ 使用直接插入方式，支持所有字段包括 age, summary, projects, relocation_preferences
+      console.log(`🔧 准备插入 ${item.name}，FTS文档长度:`, item.fts_document ? item.fts_document.length : 'NULL')
+      
       const { data, error } = await supabase
         .from('resumes')
         .insert({
@@ -154,7 +183,8 @@ export async function POST(request: NextRequest) {
           relocation_preferences: item.relocation_preferences,
           raw_data: item.raw_data,
           status: item.status,
-          embedding: `[${item.embedding.join(',')}]`
+          embedding: `[${item.embedding.join(',')}]`,
+          fts_document_text: item.fts_document || null
         })
         .select('id, name')
         .single()

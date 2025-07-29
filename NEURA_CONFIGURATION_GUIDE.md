@@ -99,9 +99,7 @@ supabase secrets set --env-file .env.supabase
 #### 3.3 部署 Edge Functions
 
 ```bash
-# 部署所有 Edge Functions
-supabase functions deploy process-resume
-supabase functions deploy get-embedding
+# 部署 Edge Functions
 supabase functions deploy copilot-qna
 ```
 
@@ -177,8 +175,6 @@ bun dev
 
 ```bash
 # 检查 Edge Functions 日志
-supabase functions logs process-resume
-supabase functions logs get-embedding
 supabase functions logs copilot-qna
 
 # 检查本地开发日志

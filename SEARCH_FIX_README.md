@@ -36,14 +36,9 @@ psql -h your-db-host -U your-username -d your-database -f debug-search-issue.sql
 - embedding维度是否为1536
 - 搜索函数是否正常工作
 
-### 3. 重新部署Edge Functions
+### 3. 部署配置
 
-更新后的`process-resume`函数已经优化，确保只使用单模型：
-
-```bash
-# 部署更新后的简历处理函数
-supabase functions deploy process-resume
-```
+搜索功能已优化，使用统一的 embedding 处理流程，无需额外的 Edge Functions 部署。
 
 ### 4. 测试搜索功能
 
@@ -69,12 +64,11 @@ node test-search-functionality.js
 
 ## 代码修改说明
 
-### 1. process-resume函数优化
+### 1. 嵌入模型优化
 
-- 移除了双模型embedding生成
-- 只使用`text-embedding-3-small`模型
-- 增加了详细的日志记录
-- 改进了错误处理
+- 统一使用`text-embedding-3-large`模型（1536维）
+- 简化了架构设计
+- 清理了未使用的 Edge Functions
 
 ### 2. 搜索API保持不变
 

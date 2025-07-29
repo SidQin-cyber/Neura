@@ -57,52 +57,55 @@ export function SimpleSidebar() {
     <TooltipProvider delayDuration={0}>
       <div className="w-16 h-screen bg-sidebar-bg border-r-[0.5px] border-border/30 flex flex-col items-center py-4 fixed left-0 top-0 z-50">
         {/* 顶部按钮区域 */}
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center">
           {/* Logo */}
           <button 
             onClick={handleNewChat}
-            className="flex items-center justify-center w-12 h-12 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
+            className="flex items-center justify-center w-12 h-12 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group mb-10"
           >
             <Logo className="!w-11 !h-11 group-hover:scale-110 transition-transform" />
           </button>
           
-          {/* 新建对话按钮 */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button 
-                onClick={handleNewChat}
-                className="flex items-center justify-center w-12 h-12 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
+          {/* 功能按钮区域 */}
+          <div className="flex flex-col items-center gap-3">
+            {/* 新建对话按钮 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={handleNewChat}
+                  className="flex items-center justify-center w-12 h-12 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
+                >
+                  <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="right" 
+                sideOffset={12}
+                className="bg-text-primary text-white px-2.5 py-1.5 rounded-md text-xs font-medium shadow-lg"
               >
-                <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent 
-              side="right" 
-              sideOffset={12}
-              className="bg-text-primary text-white px-2.5 py-1.5 rounded-md text-xs font-medium shadow-lg"
-            >
-              {t('nav.newChat')}
-            </TooltipContent>
-          </Tooltip>
+                {t('nav.newChat')}
+              </TooltipContent>
+            </Tooltip>
 
-          {/* 上传按钮 */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button 
-                onClick={() => setIsUploadModalOpen(true)}
-                className="flex items-center justify-center w-12 h-12 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
+            {/* 上传按钮 */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="flex items-center justify-center w-12 h-12 hover:bg-white/50 hover:shadow-sm rounded-lg transition-all duration-200 group"
+                >
+                  <Upload className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="right" 
+                sideOffset={12}
+                className="bg-text-primary text-white px-2.5 py-1.5 rounded-md text-xs font-medium shadow-lg"
               >
-                <Upload className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent 
-              side="right" 
-              sideOffset={12}
-              className="bg-text-primary text-white px-2.5 py-1.5 rounded-md text-xs font-medium shadow-lg"
-            >
-              {t('nav.upload')}
-            </TooltipContent>
-          </Tooltip>
+                {t('nav.upload')}
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
         {/* 占位符，使用flex-1让用户菜单在底部 */}

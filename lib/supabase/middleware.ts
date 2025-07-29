@@ -45,7 +45,8 @@ export async function updateSession(request: NextRequest) {
     '/register', // Register page
     '/api/auth', // Auth API routes
     '/api/debug', // Debug API routes
-    '/api/parse-query' // Query parsing API
+    '/api/parse-query', // Query parsing API
+    '/api/format-spark-result' // Spark result formatting API
   ]
 
   const pathname = request.nextUrl.pathname

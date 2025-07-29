@@ -452,147 +452,253 @@ export function demonstrateEmbeddingImprovement() {
   return newEmbeddingText
 } 
 
+ 
+
 /**
- * ⭐️ 新增函数：根据Spark解析出的结构化查询，构建一个"虚拟理想候选人档案"文本。
- * 这个函数的目的是为了生成与 createCandidateEmbeddingText 在结构和语义上"镜像对称"的文本。
+ * ⭐️ 【关键函数】根据Spark解析出的结构化查询，构建一个"虚拟理想候选人档案"文本
+ * 🎯 核心理念：生成与实际candidate JSON格式完全对称的结构化文本
+ * 严格按照 createCandidateEmbeddingText 的逻辑和字段顺序进行构建
  * @param parsedData - 从 /api/parse-query 返回的结构化数据
- * @returns {string} - 一个用于生成查询向量的长篇描述性文本
+ * @returns {string} - 一个用于生成查询向量的结构化文本，与候选人文档格式完全对称
  */
-export function createVirtualCandidateProfileText(parsedData: any): string {
+export function createQueryEmbeddingText(parsedData: any): string {
   if (!parsedData) return ''
 
   const sections = []
 
-  // =========== 1. 核心身份信息 (模拟真实简历的结构) ===========
+  // =========== 1. 核心身份信息 (完全对应 candidate 的 identity 字段) ===========
   const identity = []
+  
+  // name 字段 (虚拟姓名)
+  identity.push('理想候选人')
+  
+  // current_title 字段
   if (parsedData.role?.length > 0) {
-    identity.push(`理想职位是${parsedData.role.join('或')}`)
+    identity.push(parsedData.role[0])
   }
-  if (parsedData.experience_years) {
-    identity.push(`要求具备${parsedData.experience_years}年以上工作经验`)
+  
+  // age 字段  
+  if (parsedData.age_min || parsedData.age_max) {
+    const ageRange = parsedData.age_min && parsedData.age_max 
+      ? `${parsedData.age_min}-${parsedData.age_max}岁`
+      : parsedData.age_min 
+        ? `${parsedData.age_min}岁以上`
+        : `${parsedData.age_max}岁以下`
+    identity.push(ageRange)
   }
+  
+  // current_company 字段
+  if (parsedData.company?.length > 0) {
+    identity.push(`就职于${parsedData.company[0]}`)
+  }
+  
+  // location 字段
   if (parsedData.location?.length > 0) {
-    identity.push(`期望工作地点在${parsedData.location.join('、')}`)
-  }
-  if (parsedData.salary) {
-    identity.push(`薪资期望${parsedData.salary}`)
+    identity.push(`工作地点${parsedData.location[0]}`)
   }
   
   if (identity.length > 0) {
-    sections.push(`寻求一位理想的候选人。${identity.join('，')}。`)
+    sections.push(identity.join('，'))
   }
 
-  // =========== 2. 个人简介 (模拟) - 最重要的语义信息 ===========
+  // =========== 2. 个人简介 (对应 candidate.summary 字段) ===========
   const summaryParts = []
+  
   if (parsedData.role?.length > 0) {
-    summaryParts.push(`这是一位经验丰富的${parsedData.role[0]}`)
+    summaryParts.push(`资深${parsedData.role[0]}`)
   }
+  
+  if (parsedData.experience_min) {
+    summaryParts.push(`拥有 ${parsedData.experience_min} 年工作经验`)
+  }
+  
   if (parsedData.skills_must?.length > 0) {
-    summaryParts.push(`精通${parsedData.skills_must.join('、')}等核心技术`)
+    summaryParts.push(`精通 ${parsedData.skills_must.join(' 和 ')} 技术`)
   }
+  
+  if (parsedData.industry?.length > 0) {
+    summaryParts.push(`专注于${parsedData.industry[0]}领域`)
+  }
+  
   if (parsedData.skills_related?.length > 0) {
-    const relatedSkills = parsedData.skills_related.map((s: any) => s.skill || s).join('、')
-    summaryParts.push(`并且熟悉${relatedSkills}等相关领域`)
-  }
-  if (parsedData.soft_skills?.length > 0) {
-    summaryParts.push(`具备${parsedData.soft_skills.join('、')}等软技能`)
+    const relatedSkills = parsedData.skills_related
+      .filter((s: any) => s.confidence >= 4)
+      .map((s: any) => s.skill || s)
+      .slice(0, 3)
+    
+    if (relatedSkills.length > 0) {
+      summaryParts.push(`并有丰富的 ${relatedSkills.join('、')} 应用经验`)
+    }
   }
   
   if (summaryParts.length > 0) {
     sections.push(`个人简介：${summaryParts.join('，')}。`)
   }
 
-  // =========== 3. 核心技能与专长 (最关键的匹配部分) ===========
+  // =========== 3. 核心技能与专长 (对应 candidate.skills 数组字段) ===========
   const allSkills = [
     ...(parsedData.skills_must || []),
-    ...(parsedData.skills_related?.map((s: any) => s.skill || s) || [])
-  ]
+    ...(parsedData.skills_related?.filter((s: any) => s.confidence >= 3).map((s: any) => s.skill || s) || [])
+  ].slice(0, 10)
+  
   if (allSkills.length > 0) {
-    sections.push(`专业技能：${allSkills.join('、')}。`)
+    sections.push(`专业技能：${allSkills.join('、')}`)
   }
 
-  // =========== 4. 工作经验详情 (模拟) ===========
+  // =========== 4. 工作经验详情 (对应 candidate.experience 数组字段) ===========
   const experienceParts = []
-  if (parsedData.experience_years) {
-    experienceParts.push(`拥有${parsedData.experience_years}年工作经验`)
+  
+  // years_of_experience 字段
+  if (parsedData.experience_min) {
+    experienceParts.push(`拥有${parsedData.experience_min}年工作经验`)
   }
-  if (parsedData.role?.length > 0) {
-    experienceParts.push(`在${parsedData.role[0]}岗位上积累了丰富的实践经验`)
-  }
-  if (parsedData.skills_must?.length > 0) {
-    experienceParts.push(`在过往工作中大量使用${parsedData.skills_must.join('、')}等技术解决实际业务问题`)
+  
+  // 模拟 experience 数组结构
+  if (parsedData.role?.length > 0 && parsedData.company?.length > 0) {
+    const expDescriptions = []
+    expDescriptions.push(`在${parsedData.company[0]}担任${parsedData.role[0]}`)
+    expDescriptions.push('负责核心产品的设计与开发')
+    
+    if (parsedData.skills_must?.length > 0) {
+      expDescriptions.push(`主要成就：运用${parsedData.skills_must.slice(0, 3).join('、')}技术提升产品性能`)
+      expDescriptions.push(`技术栈：${parsedData.skills_must.join('、')}`)
+    }
+    
+    experienceParts.push(`工作经历：${expDescriptions.join('，')}`)
   }
   
   if (experienceParts.length > 0) {
-    sections.push(`工作经验：${experienceParts.join('，')}。`)
+    sections.push(experienceParts.join('。'))
   }
 
-  // =========== 5. 项目经验 (模拟) ===========
+  // =========== 5. 项目经验 (对应 candidate.projects 数组字段) ===========
   if (parsedData.skills_must?.length > 0 || parsedData.role?.length > 0) {
-    const projectParts = []
-    if (parsedData.role?.length > 0) {
-      projectParts.push(`参与多个${parsedData.role[0]}相关的重要项目`)
-    }
-    if (parsedData.skills_must?.length > 0) {
-      projectParts.push(`在项目中充分运用${parsedData.skills_must.slice(0, 3).join('、')}等技术`)
-    }
-    projectParts.push('在团队协作中发挥关键作用，为项目成功做出重要贡献')
+    const projectDescriptions = []
     
-    sections.push(`项目经验：${projectParts.join('，')}。`)
+    if (parsedData.role?.length > 0) {
+      const projParts = []
+      projParts.push(`项目名称：${parsedData.role[0]}相关核心项目`)
+      projParts.push(`基于现代技术栈构建的高性能应用系统`)
+      
+      if (parsedData.skills_must?.length > 0) {
+        projParts.push(`技术栈：${parsedData.skills_must.join('、')}`)
+      }
+      
+      projParts.push('担任角色：技术负责人')
+      projParts.push('项目亮点：实现了高性能架构设计；构建了可扩展的技术方案')
+      
+      projectDescriptions.push(projParts.join('，'))
+    }
+    
+    if (projectDescriptions.length > 0) {
+      sections.push(`项目经验：${projectDescriptions.join('。')}`)
+    }
   }
 
-  // =========== 6. 教育背景 (模拟) ===========
+  // =========== 6. 教育背景 (对应 candidate.education 数组字段) ===========
   if (parsedData.education?.length > 0) {
-    sections.push(`教育背景：${parsedData.education.join('或')}学历，相关专业背景。`)
+    const eduDescriptions = parsedData.education.map((edu: string) => {
+      return `学校：知名大学，学历：${edu}，专业：计算机相关专业，毕业年份：近年毕业`
+    })
+    sections.push(`教育背景：${eduDescriptions.join('。')}`)
   }
 
-  // =========== 7. 语言能力和其他 (模拟) ===========
-  const additionalParts = []
-  if (parsedData.languages?.length > 0) {
-    additionalParts.push(`掌握${parsedData.languages.join('、')}语言`)
+  // =========== 7. 认证资质 (对应 candidate.certifications 数组字段) ===========
+  if (parsedData.skills_must?.some((skill: string) => 
+    skill.toLowerCase().includes('aws') || 
+    skill.toLowerCase().includes('azure') || 
+    skill.toLowerCase().includes('gcp')
+  )) {
+    sections.push('认证资质：持有云计算相关专业认证，认证机构：知名厂商，获取时间：近期')
   }
-  if (parsedData.certifications?.length > 0) {
-    additionalParts.push(`持有${parsedData.certifications.join('、')}等专业认证`)
+
+  // =========== 8. 语言能力 (对应 candidate.languages 数组字段) ===========
+  const languageParts = ['语言：中文，熟练程度：母语']
+  if (parsedData.skills_related?.some((s: any) => 
+    s.skill?.toLowerCase().includes('english') || s.skill?.includes('英语')
+  )) {
+    languageParts.push('语言：英语，熟练程度：工作流利')
+  }
+  sections.push(`语言能力：${languageParts.join('；')}`)
+
+  // =========== 9. 地理偏好 (对应 candidate.relocation_preferences 字段) ===========
+  if (parsedData.location?.length > 0) {
+    sections.push(`地理偏好：${parsedData.location.join('、')}`)
+  }
+
+  // =========== 10. 期望薪资与求职状态 (对应 candidate.expected_salary_* 和 job_search_status 字段) ===========
+  const expectationParts = []
+  
+  if (parsedData.salary_min || parsedData.salary_max) {
+    const salaryMin = parsedData.salary_min || '面议'
+    const salaryMax = parsedData.salary_max || '面议'
+    expectationParts.push(`期望薪资最低：${salaryMin}`)
+    expectationParts.push(`期望薪资最高：${salaryMax}`)
   }
   
-  if (additionalParts.length > 0) {
-    sections.push(`其他能力：${additionalParts.join('，')}。`)
+  expectationParts.push('求职状态：主动求职')
+  
+  if (expectationParts.length > 0) {
+    sections.push(expectationParts.join('，'))
   }
 
-  // 如果没有解析到任何有效信息，返回一个基础的档案描述
+  // 如果没有解析到任何有效信息，返回一个基础的结构化档案
   if (sections.length === 0) {
-    return '寻求一位有能力的专业人士，具备相关工作经验和技能，能够胜任岗位要求并为团队带来价值。'
+    return '理想候选人，经验丰富的专业人士。个人简介：具备相关工作经验和技能，能够胜任岗位要求并为团队带来价值。专业技能：掌握主流技术栈。工作经验：拥有多年实际项目经验。求职状态：主动求职'
   }
 
-  return sections.join('\n')
+  // 组合所有部分，用句号分隔以保持与 createCandidateEmbeddingText 完全一致的格式
+  return sections.filter(Boolean).join('。')
 }
 
 /**
- * ⭐️ 新增函数：根据Spark解析出的结构化查询，构建FTS搜索关键词
+ * ⭐️ 【关键函数】根据Spark解析出的结构化查询，构建FTS搜索关键词
+ * 提取最重要的关键词用于PGroonga全文搜索
  * @param parsedData - 从 /api/parse-query 返回的结构化数据
- * @returns {string} - 用于PGroonga全文搜索的关键词字符串
+ * @returns {string} - 用于FTS搜索的关键词字符串
  */
 export function createFTSQueryText(parsedData: any): string {
   if (!parsedData) return ''
 
   const ftsKeywords = []
   
-  // 核心关键词优先级排序
+  // 核心关键词优先级排序 (按重要性)
   if (parsedData.role?.length > 0) {
     ftsKeywords.push(...parsedData.role)
   }
+  
   if (parsedData.skills_must?.length > 0) {
     ftsKeywords.push(...parsedData.skills_must)
   }
-  if (parsedData.experience_years) {
-    ftsKeywords.push(`${parsedData.experience_years}年`)
+  
+  if (parsedData.company?.length > 0) {
+    ftsKeywords.push(...parsedData.company)
   }
+  
   if (parsedData.location?.length > 0) {
     ftsKeywords.push(...parsedData.location)
   }
+  
+  if (parsedData.industry?.length > 0) {
+    ftsKeywords.push(...parsedData.industry)
+  }
+  
+  if (parsedData.experience_min) {
+    ftsKeywords.push(`${parsedData.experience_min}年`)
+  }
+  
+  // 添加高置信度的相关技能 (只取前5个)
   if (parsedData.skills_related?.length > 0) {
-    const relatedSkills = parsedData.skills_related.map((s: any) => s.skill || s)
-    ftsKeywords.push(...relatedSkills.slice(0, 3)) // 只取前3个相关技能
+    const relatedSkills = parsedData.skills_related
+      .filter((s: any) => s.confidence >= 4)
+      .map((s: any) => s.skill || s)
+      .slice(0, 5)
+    ftsKeywords.push(...relatedSkills)
+  }
+
+  // 使用原始的rewritten_query作为兜底
+  if (ftsKeywords.length === 0 && parsedData.rewritten_query) {
+    return parsedData.rewritten_query
   }
 
   return ftsKeywords.filter(Boolean).join(' ')

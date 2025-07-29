@@ -7,6 +7,7 @@ import { ToolSection } from './tool-section'
 import { UserMessage } from './user-message'
 import { CandidateResultsSection } from './recruitment/candidate-results-section'
 import { JobResultsSection } from './recruitment/job-results-section'
+import { AnimatedResultsSection } from './animated-results-section'
 import { CandidateSearchResult, JobSearchResult } from '@/lib/context/search-context'
 
 interface RenderMessageProps {
@@ -186,12 +187,11 @@ export function RenderMessage({
         ) {
           try {
             return (
-              <CandidateResultsSection
-                candidates={message.content as any[]}
-                isOpen={getIsOpen(`${messageId}-candidates`)}
-                onOpenChange={open => onOpenChange(`${messageId}-candidates`, open)}
+              <AnimatedResultsSection
+                results={message.content as CandidateSearchResult[]}
+                searchType="candidates"
                 query=""
-                totalCount={message.content.length}
+                isReady={true} // 消息已经存在，直接显示
               />
             )
           } catch (error) {
@@ -222,12 +222,11 @@ export function RenderMessage({
           'skills_required' in message.content[0]
         ) {
           return (
-            <JobResultsSection
-              jobs={message.content as JobSearchResult[]}
-              isOpen={getIsOpen(`${messageId}-jobs`)}
-              onOpenChange={open => onOpenChange(`${messageId}-jobs`, open)}
+            <AnimatedResultsSection
+              results={message.content as JobSearchResult[]}
+              searchType="jobs"
               query=""
-              totalCount={message.content.length}
+              isReady={true} // 消息已经存在，直接显示
             />
           )
         }

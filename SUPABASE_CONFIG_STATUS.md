@@ -37,9 +37,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=[REDACTED - 请在.env.local中配置]CubWUkCM
 - **可用函数**: search_candidates_rpc, search_jobs_rpc, insert_candidate_with_embedding 等
 
 ### Edge Functions 部署
-- **process-resume**: ✅ 已部署
-- **get-embedding**: ✅ 已部署  
-- **copilot-qna**: ✅ 已部署
+- **copilot-qna**: ✅ 已部署（AI 助手功能）
+- **未使用的 Functions**: ✅ 已清理
 
 ## 🛠️ 开发建议
 

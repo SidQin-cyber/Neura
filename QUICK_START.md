@@ -108,8 +108,6 @@ supabase link --project-ref suhchngsnkkuhjdioalo
 supabase secrets set OPENAI_API_KEY=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
 
 # 部署 Edge Functions
-supabase functions deploy process-resume
-supabase functions deploy get-embedding
 supabase functions deploy copilot-qna
 ```
 

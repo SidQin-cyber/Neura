@@ -177,16 +177,34 @@ export function ChatMessages({
               </div>
             ))}
             
-            {/* 骨架屏 - 作为独立的"待加载助手消息"渲染 */}
+            {/* 🎯 优化的骨架屏 - 平滑过渡动画 */}
             {showLoading && sectionIndex === sections.length - 1 && (
-              <div className="flex flex-col gap-4 mt-6">
-                {/* 先显示消息骨架屏 */}
-                <MessageSkeleton />
-                {/* 然后显示卡片骨架屏 */}
-                <DefaultSkeleton 
-                  variant={searchMode === 'candidates' ? 'candidate' : 'job'}
-                  count={3}
-                />
+              <div className={cn(
+                "flex flex-col gap-4 mt-6 transition-all duration-400 ease-out",
+                "animate-assistant-slide-in"
+              )}>
+                {/* 消息骨架屏 - 带淡入动画 */}
+                <div className="animate-summary-slide-in">
+                  <MessageSkeleton />
+                </div>
+                {/* 卡片骨架屏 - 优化的错开出现 */}
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div 
+                      key={i}
+                      className="opacity-0 animate-card-smooth-enter"
+                      style={{ 
+                        animationDelay: `${300 + i * 150}ms`,
+                        animationFillMode: 'forwards'
+                      }}
+                    >
+                      <DefaultSkeleton 
+                        variant={searchMode === 'candidates' ? 'candidate' : 'job'}
+                        count={1}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

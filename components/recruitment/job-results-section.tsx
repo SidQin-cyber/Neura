@@ -1,6 +1,6 @@
 'use client'
 
-import { JobCard } from './job-card'
+import { JobCardOptimized } from './job-card-optimized'
 import { CollapsibleMessage } from '@/components/collapsible-message'
 import { JobSearchResult } from '@/lib/context/search-context'
 import { MessageSkeleton } from '@/components/default-skeleton'
@@ -46,10 +46,9 @@ export function JobResultsSection({
       {jobs.length > 0 ? (
         <div className="space-y-4">
           {jobs.map((job) => (
-            <JobCard
+            <JobCardOptimized
               key={job.id}
               job={job}
-              simplified={true}
             />
           ))}
         </div>

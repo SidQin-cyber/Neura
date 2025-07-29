@@ -1,0 +1,51 @@
+{
+  "candidate": {
+    "name": "赵雪梅",
+    "email": "zhaoxuemei@email.com",
+    "phone": "13800001006",
+    "age": 30,
+    "current_title": "高级算法工程师",
+    "current_company": "百度",
+    "location": "北京",
+    "years_of_experience": 7,
+    "expected_salary_min": 45000,
+    "expected_salary_max": 65000,
+    "skills": ["python", "tensorflow", "pytorch", "opencv", "nlp", "deeplearning", "machinelearning", "cuda", "numpy", "pandas"],
+    "education": {
+      "degree": "博士",
+      "major": "计算机视觉",
+      "school": "清华大学",
+      "year": 2017
+    },
+    "experience": [
+      {
+        "company": "百度",
+        "position": "高级算法工程师",
+        "start_date": "2019-09",
+        "end_date": "至今",
+        "description": "负责百度视觉AI产品核心算法研发",
+        "achievements": ["研发人脸识别算法，准确率达到99.5%", "优化图像检索系统，查询速度提升200%", "申请AI相关专利5项，发表论文3篇"]
+      },
+      {
+        "company": "商汤科技",
+        "position": "算法工程师",
+        "start_date": "2017-07",
+        "end_date": "2019-08",
+        "description": "负责计算机视觉算法研发和产品化",
+        "achievements": ["开发目标检测算法，mAP指标业界领先", "参与自动驾驶视觉感知系统开发"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "百度智能视觉平台",
+        "description": "基于深度学习的通用视觉AI平台",
+        "highlights": ["日处理图片1亿张", "支持50+视觉AI能力"]
+      }
+    ],
+    "certifications": ["深度学习专项认证", "TensorFlow开发者认证"],
+    "languages": ["中文", "英文"],
+    "summary": "7年AI算法研发经验，专精计算机视觉和深度学习。在百度负责核心视觉AI产品研发，具备从算法设计到工程落地的完整能力。拥有多项AI专利和顶会论文。"
+  },
+  "embedding_text": "高级算法工程师 @ 百度\n高级算法工程师 @ 百度\n\npython | tensorflow | pytorch | opencv | nlp | deeplearning | machinelearning | cuda | numpy | pandas\npython | tensorflow | pytorch | opencv | nlp | deeplearning | machinelearning | cuda | numpy | pandas\n\n高级算法工程师 (2019-09 – 至今)\n研发人脸识别算法，准确率达到99.5%，优化图像检索系统查询速度提升200%\n\n算法工程师 @ 商汤科技\n高级算法工程师 @ 旷视科技",
+  "fts_document": "赵雪梅 高级算法工程师 百度 python tensorflow pytorch opencv nlp deeplearning machinelearning cuda numpy pandas 7年AI算法研发经验，专精计算机视觉和深度学习。在百度负责核心视觉AI产品研发，具备从算法设计到工程落地的完整能力。拥有多项AI专利和顶会论文。 负责百度视觉AI产品核心算法研发 研发人脸识别算法，准确率达到99.5%，优化图像检索系统，查询速度提升200%，申请AI相关专利5项，发表论文3篇 负责计算机视觉算法研发和产品化 开发目标检测算法，mAP指标业界领先，参与自动驾驶视觉感知系统开发 清华大学 百度智能视觉平台 基于深度学习的通用视觉AI平台"
+} 

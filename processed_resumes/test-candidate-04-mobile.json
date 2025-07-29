@@ -1,0 +1,51 @@
+{
+  "candidate": {
+    "name": "王志华",
+    "email": "wangzhihua@email.com",
+    "phone": "13800001004",
+    "age": 29,
+    "current_title": "高级iOS开发工程师",
+    "current_company": "小米",
+    "location": "北京",
+    "years_of_experience": 6,
+    "expected_salary_min": 28000,
+    "expected_salary_max": 40000,
+    "skills": ["swift", "objective-c", "ios", "xcode", "cocoapods", "rxswift", "alamofire", "git", "jenkins", "fastlane"],
+    "education": {
+      "degree": "本科",
+      "major": "软件工程",
+      "school": "北京邮电大学",
+      "year": 2018
+    },
+    "experience": [
+      {
+        "company": "小米",
+        "position": "高级iOS开发工程师",
+        "start_date": "2020-09",
+        "end_date": "至今",
+        "description": "负责小米商城iOS客户端核心功能开发",
+        "achievements": ["重构购物车模块，用户体验评分提升到4.8分", "优化启动速度，冷启动时间减少40%", "负责iOS 16适配，兼容性达到98%"]
+      },
+      {
+        "company": "京东",
+        "position": "iOS开发工程师",
+        "start_date": "2018-07",
+        "end_date": "2020-08",
+        "description": "负责京东金融iOS端开发",
+        "achievements": ["开发理财产品模块，日活跃用户50万+", "实现人脸识别登录功能，安全性提升30%"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "小米商城iOS重构",
+        "description": "使用Swift+MVVM架构重构商城客户端",
+        "highlights": ["App Store评分从4.2提升到4.8", "崩溃率降低到0.01%"]
+      }
+    ],
+    "certifications": ["iOS开发者认证", "Apple认证Swift开发者"],
+    "languages": ["中文", "英文"],
+    "summary": "6年iOS开发经验，精通Swift和Objective-C。在小米负责商城客户端核心功能开发，具备大型App架构设计和性能优化经验。熟悉iOS最新技术和设计规范。"
+  },
+  "embedding_text": "高级iOS开发工程师 @ 小米\n高级iOS开发工程师 @ 小米\n\nswift | objective-c | ios | xcode | cocoapods | rxswift | alamofire | git | jenkins | fastlane\nswift | objective-c | ios | xcode | cocoapods | rxswift | alamofire | git | jenkins | fastlane\n\n高级iOS开发工程师 (2020-09 – 至今)\n重构购物车模块，用户体验评分提升到4.8分，优化启动速度冷启动时间减少40%\n\niOS开发工程师 @ 京东\n高级iOS开发工程师 @ 美团",
+  "fts_document": "王志华 高级iOS开发工程师 小米 swift objective-c ios xcode cocoapods rxswift alamofire git jenkins fastlane 6年iOS开发经验，精通Swift和Objective-C。在小米负责商城客户端核心功能开发，具备大型App架构设计和性能优化经验。熟悉iOS最新技术和设计规范。 负责小米商城iOS客户端核心功能开发 重构购物车模块，用户体验评分提升到4.8分，优化启动速度，冷启动时间减少40%，负责iOS 16适配，兼容性达到98% 负责京东金融iOS端开发 开发理财产品模块，日活跃用户50万+，实现人脸识别登录功能，安全性提升30% 北京邮电大学 小米商城iOS重构 使用Swift+MVVM架构重构商城客户端"
+} 

@@ -14,10 +14,12 @@ export const UserMessage: React.FC<UserMessageProps> = ({
 }) => {
 
   return (
-    <CollapsibleMessage role="user">
-      <div className="flex-1 break-words w-full">
-        {message}
-      </div>
-    </CollapsibleMessage>
+    <div className="animate-message-send">
+      <CollapsibleMessage role="user">
+        <div className="flex-1 break-words w-full">
+          {message}
+        </div>
+      </CollapsibleMessage>
+    </div>
   )
 }

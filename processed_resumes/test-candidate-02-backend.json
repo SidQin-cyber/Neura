@@ -1,0 +1,51 @@
+{
+  "candidate": {
+    "name": "张伟强",
+    "email": "zhangweiqiang@email.com",
+    "phone": "13800001002",
+    "age": 32,
+    "current_title": "资深Java开发工程师",
+    "current_company": "阿里巴巴",
+    "location": "杭州",
+    "years_of_experience": 8,
+    "expected_salary_min": 35000,
+    "expected_salary_max": 50000,
+    "skills": ["java", "spring", "springboot", "mybatis", "redis", "mysql", "elasticsearch", "kafka", "docker", "kubernetes"],
+    "education": {
+      "degree": "硕士",
+      "major": "软件工程",
+      "school": "浙江大学",
+      "year": 2016
+    },
+    "experience": [
+      {
+        "company": "阿里巴巴",
+        "position": "资深Java开发工程师",
+        "start_date": "2019-03",
+        "end_date": "至今",
+        "description": "负责淘宝交易系统核心模块开发",
+        "achievements": ["设计高并发交易系统，支持日订单量500万+", "优化数据库查询性能提升80%", "搭建微服务架构，服务可用性99.9%"]
+      },
+      {
+        "company": "网易",
+        "position": "Java开发工程师",
+        "start_date": "2016-07",
+        "end_date": "2019-02",
+        "description": "负责网易云音乐后端API开发",
+        "achievements": ["开发用户推荐算法，点击率提升25%", "重构支付系统，处理异常率降低90%"]
+      }
+    ],
+    "projects": [
+      {
+        "name": "淘宝交易系统重构",
+        "description": "基于Spring Cloud微服务架构重构交易系统",
+        "highlights": ["支持亿级用户并发", "系统响应时间从2s优化到200ms"]
+      }
+    ],
+    "certifications": ["Oracle Java认证", "阿里云架构师认证", "Spring认证开发者"],
+    "languages": ["中文", "英文"],
+    "summary": "8年Java后端开发经验，精通Spring生态和微服务架构。在阿里巴巴负责淘宝交易系统核心开发，具备大型分布式系统设计经验。擅长高并发系统优化和数据库性能调优。"
+  },
+  "embedding_text": "资深Java开发工程师 @ 阿里巴巴\n资深Java开发工程师 @ 阿里巴巴\n\njava | spring | springboot | mybatis | redis | mysql | elasticsearch | kafka | docker | kubernetes\njava | spring | springboot | mybatis | redis | mysql | elasticsearch | kafka | docker | kubernetes\n\n资深Java开发工程师 (2019-03 – 至今)\n设计高并发交易系统，支持日订单量500万+，优化数据库查询性能提升80%\n\nJava开发工程师 @ 网易\n资深Java开发工程师 @ 腾讯",
+  "fts_document": "张伟强 资深Java开发工程师 阿里巴巴 java spring springboot mybatis redis mysql elasticsearch kafka docker kubernetes 8年Java后端开发经验，精通Spring生态和微服务架构。在阿里巴巴负责淘宝交易系统核心开发，具备大型分布式系统设计经验。擅长高并发系统优化和数据库性能调优。 负责淘宝交易系统核心模块开发 设计高并发交易系统，支持日订单量500万+，优化数据库查询性能提升80%，搭建微服务架构，服务可用性99.9% 负责网易云音乐后端API开发 开发用户推荐算法，点击率提升25%，重构支付系统，处理异常率降低90% 浙江大学 淘宝交易系统重构 基于Spring Cloud微服务架构重构交易系统"
+} 

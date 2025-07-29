@@ -9,7 +9,12 @@ export interface SearchParams {
     salary?: string
     skills?: string[]
     education?: string[]
+    // Spark 模式特殊标记
+    _sparkMode?: boolean
+    _ftsQuery?: string
+    _embeddingQuery?: string
   }
+  rerank?: boolean  // ✨ 新增 rerank 参数
 }
 
 export interface SearchResponse {
@@ -51,7 +56,7 @@ export interface SearchStreamChunk {
 // Enhanced streaming search function
 export async function universalSearchStreaming(params: SearchParams): Promise<StreamingSearchResponse> {
   try {
-    const { query, mode, filters } = params
+    const { query, mode, filters, rerank } = params
 
     // Call the streaming search API
     const response = await fetch('/api/search', {
@@ -63,7 +68,8 @@ export async function universalSearchStreaming(params: SearchParams): Promise<St
       body: JSON.stringify({
         query,
         mode,
-        filters
+        filters,
+        rerank
       })
     })
 
@@ -89,7 +95,7 @@ export async function universalSearchStreaming(params: SearchParams): Promise<St
 // Legacy non-streaming search function (kept for backward compatibility)
 export async function universalSearch(params: SearchParams): Promise<SearchResponse> {
   try {
-    const { query, mode, filters } = params
+    const { query, mode, filters, rerank } = params
 
     // 调用服务器端搜索API
     const response = await fetch('/api/search', {
@@ -101,7 +107,8 @@ export async function universalSearch(params: SearchParams): Promise<SearchRespo
       body: JSON.stringify({
         query,
         mode,
-        filters
+        filters,
+        rerank
       })
     })
 

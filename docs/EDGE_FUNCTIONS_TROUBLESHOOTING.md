@@ -50,13 +50,9 @@
 - `supabase/functions/types.d.ts` - 类型定义
 - `.vscode/settings.json` - VSCode配置
 
-### Edge Functions
-- `get-embedding/` - 单模型embedding生成
-- `get-dual-embedding/` - 双模型embedding生成
-- `process-resume/` - 简历处理
-- `process-resume-dual/` - 双模型简历处理
-- `copilot-qna/` - AI助手问答
-- `_shared/` - 共享模块
+  ### Edge Functions
+  - `copilot-qna/` - AI 助手问答功能
+  - `_shared/` - 共享模块
 
 ## 常见问题
 

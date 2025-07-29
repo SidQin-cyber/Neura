@@ -48,8 +48,8 @@
 
 #### 3. Edge Functions - **100% 完成**
 
-- ✅ **process-resume** - 简历解析和向量化
-- ✅ **get-embedding** - 文本嵌入生成
+- ✅ **embedding 处理** - 统一的简历和职位向量化
+- ✅ **lib/embedding** - 文本嵌入生成
 - ✅ **copilot-qna** - AI 问答助手
 - ✅ **CORS 配置** - 跨域请求支持
 
@@ -175,10 +175,8 @@ database/
 └── rpc_functions.sql (379 行)
 
 supabase/functions/
-├── process-resume/index.ts (236 行)
-├── get-embedding/index.ts (66 行)
-├── copilot-qna/index.ts (134 行)
-└── _shared/cors.ts (6 行)
+├── copilot-qna/index.ts (AI 助手)
+└── _shared/cors.ts (共享模块)
 
 lib/types/
 └── recruitment.ts (300+ 行)
