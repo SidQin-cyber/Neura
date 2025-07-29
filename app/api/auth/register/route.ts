@@ -181,33 +181,41 @@ export async function POST(request: NextRequest) {
         username
       )
 
+      // 注册成功后，主动退出登录，确保用户需要手动登录
+      await supabase.auth.signOut()
+      
       return NextResponse.json({
         success: true,
-        message: '注册成功',
+        message: '注册成功，请前往登录页面',
         email: virtualEmail,
         user: {
           id: authData.user.id,
           username: username,
           fullName: fullName,
           profileId: profileData
-        }
+        },
+        requireLogin: true // 标识需要重新登录
       })
       
     } catch (profileError) {
       console.error('📝 用户档案创建最终失败:', profileError)
       
+      // 注册成功后，主动退出登录，确保用户需要手动登录
+      await supabase.auth.signOut()
+      
       // 即使档案创建失败，用户仍然创建成功了
       // 返回部分成功的状态，用户可以稍后完善档案
       return NextResponse.json({
         success: true,
-        message: '注册成功，但档案创建失败，请联系管理员',
+        message: '注册成功，但档案创建失败，请前往登录页面',
         email: virtualEmail,
         user: {
           id: authData.user.id,
           username: username,
           fullName: fullName
         },
-        warning: '用户档案创建失败：' + (profileError instanceof Error ? profileError.message : '未知错误')
+        warning: '用户档案创建失败：' + (profileError instanceof Error ? profileError.message : '未知错误'),
+        requireLogin: true // 标识需要重新登录
       }, { status: 201 }) // 201 表示部分成功
     }
 
