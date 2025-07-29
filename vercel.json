@@ -35,5 +35,5 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "regions": ["hkg1"]
+  "regions": ["iad1"]
 } 
