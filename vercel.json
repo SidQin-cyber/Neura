@@ -1,5 +1,7 @@
 {
   "framework": "nextjs",
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
   "functions": {
     "app/api/**/route.ts": {
       "maxDuration": 30
@@ -33,6 +35,5 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "regions": ["hkg1"],
-  "buildCommand": "npm run build"
+  "regions": ["hkg1"]
 } 
