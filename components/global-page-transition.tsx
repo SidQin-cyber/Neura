@@ -19,7 +19,7 @@ const getPageTransition = (pathname: string) => {
         animate: { opacity: 1, y: 0 },
         exit: { opacity: 0, y: -20 }
       },
-      transition: { duration: 0.4, ease: 'easeInOut' }
+      transition: { duration: 0.4 }
     }
   }
 
@@ -32,7 +32,7 @@ const getPageTransition = (pathname: string) => {
         animate: { opacity: 1, x: 0, scale: 1 },
         exit: { opacity: 0, x: -60, scale: 0.95 }
       },
-      transition: { duration: 0.5, ease: 'easeOut' }
+      transition: { duration: 0.5 }
     }
   }
 
@@ -44,7 +44,7 @@ const getPageTransition = (pathname: string) => {
       animate: { opacity: 1, y: 0 },
       exit: { opacity: 0, y: -15 }
     },
-    transition: { duration: 0.3, ease: 'easeInOut' }
+    transition: { duration: 0.3 }
   }
 }
 
@@ -85,7 +85,7 @@ export const pageTransitionPresets = {
       animate: { opacity: 1, y: 0 },
       exit: { opacity: 0, y: -15 }
     },
-    transition: { duration: 0.3, ease: 'easeInOut' as const }
+    transition: { duration: 0.3 }
   },
   
   slideIn: {
@@ -94,7 +94,7 @@ export const pageTransitionPresets = {
       animate: { opacity: 1, x: 0, scale: 1 },
       exit: { opacity: 0, x: -60, scale: 0.95 }
     },
-    transition: { duration: 0.5, ease: 'easeOut' as const }
+    transition: { duration: 0.5 }
   },
   
   slideUp: {
@@ -103,7 +103,7 @@ export const pageTransitionPresets = {
       animate: { opacity: 1, y: 0, scale: 1 },
       exit: { opacity: 0, y: -50, scale: 0.95 }
     },
-    transition: { duration: 0.4, ease: 'easeOut' as const }
+    transition: { duration: 0.4 }
   },
   
   scale: {
@@ -112,7 +112,7 @@ export const pageTransitionPresets = {
       animate: { opacity: 1, scale: 1 },
       exit: { opacity: 0, scale: 1.05 }
     },
-    transition: { duration: 0.3, ease: 'easeInOut' as const }
+    transition: { duration: 0.3 }
   }
 }
 
