@@ -180,7 +180,7 @@ export function ChatMessages({
             {/* 🎯 优化的骨架屏 - 平滑过渡动画 */}
             {showLoading && sectionIndex === sections.length - 1 && (
               <div className={cn(
-                "flex flex-col gap-4 mt-6 transition-all duration-400 ease-out",
+                "flex flex-col gap-2 mt-6 transition-all duration-400 ease-out",
                 "animate-assistant-slide-in"
               )}>
                 {/* 消息骨架屏 - 带淡入动画 */}

@@ -63,6 +63,9 @@ export function RecruitmentChatPanel({
   const isFirstRender = useRef(true)
   const [isComposing, setIsComposing] = useState(false)
   const [enterDisabled, setEnterDisabled] = useState(false)
+  
+  // 滚动按钮动画状态
+  const [isScrollButtonAnimating, setIsScrollButtonAnimating] = useState(false)
 
   const handleCompositionStart = () => setIsComposing(true)
 
@@ -108,14 +111,23 @@ export function RecruitmentChatPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
-  // Scroll to the bottom of the container
+  // Scroll to the bottom of the container with button animation
   const handleScrollToBottom = () => {
     const scrollContainer = scrollContainerRef.current
     if (scrollContainer) {
+      // 开始缩放动画
+      setIsScrollButtonAnimating(true)
+      
+      // 滚动到底部
       scrollContainer.scrollTo({
         top: scrollContainer.scrollHeight,
         behavior: 'smooth'
       })
+      
+      // 在动画完成后重置状态（滚动动画大约需要500ms，我们给600ms）
+      setTimeout(() => {
+        setIsScrollButtonAnimating(false)
+      }, 600)
     }
   }
 
@@ -136,7 +148,9 @@ export function RecruitmentChatPanel({
             type="button"
             variant="outline"
             size="icon"
-            className="absolute -top-12 right-4 z-20 size-8 rounded-full shadow-md"
+            className={`absolute -top-12 right-4 z-20 size-8 rounded-full shadow-md transition-transform duration-300 ease-out ${
+              isScrollButtonAnimating ? 'animate-scale-out' : ''
+            }`}
             onClick={handleScrollToBottom}
             title="滚动到底部"
           >

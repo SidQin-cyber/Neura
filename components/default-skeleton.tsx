@@ -23,7 +23,7 @@ const ShimmerElement = ({ className = "", ...props }: React.HTMLAttributes<HTMLD
 // 消息骨架屏组件
 export const MessageSkeleton = () => {
   return (
-    <div className="flex items-start mb-6">
+    <div className="flex items-start mb-2">
       <div className="relative flex flex-col items-start mr-3 -mt-7 -ml-5">
         <div className="w-16">
           <Logo className="!w-16 !h-16 transform -translate-x-2" />

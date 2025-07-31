@@ -153,6 +153,9 @@ export function ChatPanel({
   // ✨ 新增：Rerank 状态管理
   const [rerankEnabled, setRerankEnabled] = useState(false)
 
+  // 滚动按钮动画状态
+  const [isScrollButtonAnimating, setIsScrollButtonAnimating] = useState(false)
+
 
   // 确保在组件挂载时立即同步cookie中的搜索模式
   useEffect(() => {
@@ -552,7 +555,7 @@ export function ChatPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
-  // Scroll to the bottom of the container
+  // Scroll to the bottom of the container with button animation
   const handleScrollToBottom = () => {
     const scrollContainer = scrollContainerRef.current
     if (scrollContainer) {
@@ -561,10 +564,20 @@ export function ChatPanel({
         clientHeight: scrollContainer.clientHeight,
         scrollTop: scrollContainer.scrollTop
       })
+      
+      // 开始缩放动画
+      setIsScrollButtonAnimating(true)
+      
+      // 滚动到底部
       scrollContainer.scrollTo({
         top: scrollContainer.scrollHeight,
         behavior: 'smooth'
       })
+      
+      // 在动画完成后重置状态（滚动动画大约需要500ms，我们给600ms）
+      setTimeout(() => {
+        setIsScrollButtonAnimating(false)
+      }, 600)
     } else {
       console.log('❌ 滚动容器未找到')
     }
@@ -649,7 +662,9 @@ export function ChatPanel({
             type="button"
             variant="outline"
             size="icon"
-            className="absolute -top-10 right-4 z-20 size-8 rounded-full shadow-md"
+            className={`absolute -top-10 right-4 z-20 size-8 rounded-full shadow-md transition-transform duration-300 ease-out ${
+              isScrollButtonAnimating ? 'animate-scale-out' : ''
+            }`}
             onClick={handleScrollToBottom}
             title="Scroll to bottom"
           >

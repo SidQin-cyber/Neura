@@ -569,3 +569,23 @@
 .animate-premium-shimmer {
   animation: premium-shimmer 2.5s cubic-bezier(0.23, 1, 0.32, 1) infinite;
 }
+
+/* 滚动到底部按钮缩放消失动画 */
+@keyframes scale-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+.animate-scale-out {
+  animation: scale-out 0.3s cubic-bezier(0.4, 0.0, 1, 1) forwards;
+}
