@@ -3,6 +3,8 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { SuccessToast, buttonVariants, linkVariants } from '@/components/auth-page-transition'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -16,6 +18,7 @@ export default function RegisterPage() {
   const [inviteCode, setInviteCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [usernameError, setUsernameError] = useState('')
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
   const router = useRouter()
 
   const validatePassword = (password: string) => {
@@ -84,16 +87,20 @@ export default function RegisterPage() {
         return
       }
 
-      // 注册成功，跳转到登录页面
-      toast.success('注册成功！请登录')
-      router.push('/login')
-
+      // 显示成功提示动画
+      setShowSuccessToast(true)
+      
+      // 延迟跳转，让用户看到成功提示
+      setTimeout(() => {
+        router.replace('/login')
+      }, 1500) // 1.5秒后跳转
+      
     } catch (error) {
       console.error('Registration error:', error)
       toast.error('注册失败，请重试')
-    } finally {
       setIsLoading(false)
     }
+    // 注意：成功时不立即设置 isLoading 为 false，保持按钮状态直到跳转
   }
 
   return (
@@ -229,25 +236,38 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex w-full justify-center rounded-lg bg-[#8a5cf6] px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-[#7c3aed] hover:shadow-lg hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8a5cf6] transition-all duration-200 ease-out"
+                <motion.div
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
                 >
-                  {isLoading ? '注册中...' : '注册'}
-                </Button>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex w-full justify-center rounded-lg bg-[#8a5cf6] px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-[#7c3aed] hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8a5cf6] transition-all duration-200 ease-out"
+                  >
+                    {isLoading ? '注册中...' : '注册'}
+                  </Button>
+                </motion.div>
               </div>
             </form>
 
             <div className="mt-6 text-center">
               <div className="text-sm/6 text-gray-500">
                 已有账户？{' '}
-                <Link 
-                  href="/login" 
-                  className="font-semibold text-indigo-600 hover:text-indigo-500"
+                <motion.div
+                  variants={linkVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  className="inline-block"
                 >
-                  立即登录
-                </Link>
+                  <Link 
+                    href="/login" 
+                    className="font-semibold text-indigo-600 hover:text-indigo-500"
+                  >
+                    立即登录
+                  </Link>
+                </motion.div>
               </div>
             </div>
           </div>
@@ -270,6 +290,13 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
+      
+      {/* 成功提示组件 */}
+      <SuccessToast 
+        show={showSuccessToast} 
+        message="注册成功！正在跳转到登录页..."
+        onComplete={() => setShowSuccessToast(false)}
+      />
     </div>
   )
 } 

@@ -80,7 +80,23 @@ async function enhancedSearchCandidates(
     let queryBuilder = supabase.from('resumes').select('*')
 
     if (phoneRegex.test(query)) {
-      queryBuilder = queryBuilder.eq('phone', query)
+      // 🔧 修复电话号码搜索：支持不同格式的电话号码匹配
+      // 清理用户输入：去除所有非数字字符
+      const cleanPhone = query.replace(/[^0-9]/g, '')
+      console.log(`📱 清理后的电话号码: ${cleanPhone}`)
+      
+      // 生成常见的中国手机号格式变体
+      const phoneVariants = [
+        query,                              // 原始输入 (18100171265)
+        cleanPhone,                         // 纯数字 (18100171265)  
+        `${cleanPhone.slice(0,3)}-${cleanPhone.slice(3,7)}-${cleanPhone.slice(7)}`, // 3-4-4格式 (181-0017-1265)
+        `${cleanPhone.slice(0,3)} ${cleanPhone.slice(3,7)} ${cleanPhone.slice(7)}`, // 空格分隔 (181 0017 1265)
+      ]
+      
+      console.log(`📱 生成的电话号码格式变体: ${phoneVariants.join(', ')}`)
+      
+      // 使用 .in() 方法匹配多种格式
+      queryBuilder = queryBuilder.in('phone', phoneVariants)
     } else {
       queryBuilder = queryBuilder.eq('email', query)
     }

@@ -16,6 +16,8 @@ import { cn } from '@/lib/utils/index'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { SuccessToast, buttonVariants, linkVariants } from '@/components/auth-page-transition'
+import { motion } from 'framer-motion'
 
 export function LoginForm({
   className,
@@ -25,6 +27,7 @@ export function LoginForm({
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -39,14 +42,22 @@ export function LoginForm({
         password
       })
       if (error) throw error
-      // Redirect to root and refresh to ensure server components get updated session
-      router.push('/')
-      router.refresh()
+      
+      // 显示成功提示
+      setShowSuccessToast(true)
+      
+      // 延迟跳转，让用户看到成功提示
+      setTimeout(() => {
+        // 使用replace而不是push，避免返回按钮回到登录页
+        router.replace('/')
+        router.refresh()
+      }, 1500) // 1.5秒后跳转
+      
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
-    } finally {
       setIsLoading(false)
     }
+    // 注意：成功时不立即设置 isLoading 为 false，保持按钮状态直到跳转
   }
 
   const handleSocialLogin = async () => {
@@ -137,16 +148,29 @@ export function LoginForm({
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Sign In'}
-              </Button>
+              <motion.div
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Logging in...' : 'Sign In'}
+                </Button>
+              </motion.div>
             </form>
           </div>
           <div className="mt-6 text-center text-sm">
             Don&apos;t have an account?{' '}
-            <Link href="/auth/sign-up" className="underline underline-offset-4">
-              Sign Up
-            </Link>
+            <motion.div
+              variants={linkVariants}
+              whileHover="hover"
+              whileTap="tap"
+              className="inline-block"
+            >
+              <Link href="/auth/sign-up" className="underline underline-offset-4">
+                Sign Up
+              </Link>
+            </motion.div>
           </div>
         </CardContent>
       </Card>
@@ -155,6 +179,12 @@ export function LoginForm({
           &larr; Back to Home
         </Link>
       </div>
+      {/* 成功提示组件 */}
+      <SuccessToast 
+        show={showSuccessToast} 
+        message="登录成功！正在跳转..."
+        onComplete={() => setShowSuccessToast(false)}
+      />
     </div>
   )
 }

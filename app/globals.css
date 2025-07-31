@@ -359,6 +359,17 @@
     @apply bg-background text-foreground;
     min-height: 100vh;
   }
+  
+  /* 确保 Framer Motion 动画正常工作 */
+  [data-framer-motion] {
+    will-change: transform, opacity;
+  }
+  
+  /* 认证页面动画支持 */
+  .auth-page-container {
+    perspective: 1000px;
+    transform-style: preserve-3d;
+  }
 }
 
 /* 搜索过渡动画效果 */

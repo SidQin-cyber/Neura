@@ -16,6 +16,8 @@ import { cn } from '@/lib/utils/index'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { buttonVariants, linkVariants } from '@/components/auth-page-transition'
+import { motion } from 'framer-motion'
 
 export function SignUpForm({
   className,
@@ -142,15 +144,28 @@ export function SignUpForm({
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Sign Up'}
-              </Button>
+              <motion.div
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Creating account...' : 'Sign Up'}
+                </Button>
+              </motion.div>
             </div>
             <div className="mt-6 text-center text-sm">
               Already have an account?{' '}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Sign In
-              </Link>
+              <motion.div
+                variants={linkVariants}
+                whileHover="hover"
+                whileTap="tap"
+                className="inline-block"
+              >
+                <Link href="/auth/login" className="underline underline-offset-4">
+                  Sign In
+                </Link>
+              </motion.div>
             </div>
           </form>
         </CardContent>

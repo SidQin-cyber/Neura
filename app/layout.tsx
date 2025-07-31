@@ -82,10 +82,10 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <LanguageProvider>
-          {/* Always show sidebar and header layout */}
+          {/* Conditional sidebar and header layout based on authentication */}
           <div className="flex min-h-screen">
-            <SimpleSidebar />
-            <div className="flex flex-col flex-1 ml-16">
+            {user && <SimpleSidebar />}
+            <div className={`flex flex-col flex-1 ${user ? 'ml-16' : ''}`}>
               {user && <Header user={user} />}
               <main className="flex flex-1">
                 <ArtifactRoot>{children}</ArtifactRoot>
