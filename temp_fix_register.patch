@@ -1,0 +1,36 @@
+--- a/app/api/auth/register/route.ts
++++ b/app/api/auth/register/route.ts
+@@ -152,20 +152,25 @@
+     // 自动确认邮箱 - 使用 Service Role 客户端
+     try {
+-      const serviceClient = createServiceRoleClient()
+-      
+       // 检查 Service Role Key 是否存在
+       if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+         console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY 未配置，跳过邮箱自动确认')
+       } else {
+-        const { error: confirmError } = await serviceClient.rpc('confirm_user_email', {
+-          user_email: virtualEmail
+-        })
+-        
+-        if (confirmError) {
+-          console.error('⚠️ 邮箱确认失败:', confirmError)
+-        } else {
+-          console.log('✅ 邮箱确认成功')
++        try {
++          const serviceClient = createServiceRoleClient()
++          const { error: confirmError } = await serviceClient.rpc('confirm_user_email', {
++            user_email: virtualEmail
++          })
++          
++          if (confirmError) {
++            console.error('⚠️ 邮箱确认失败:', confirmError)
++          } else {
++            console.log('✅ 邮箱确认成功')
++          }
++        } catch (serviceError) {
++          console.error('⚠️ Service Role 客户端创建失败:', serviceError)
++          console.log('🔄 邮箱确认跳过，用户仍可正常登录（邮箱确认已关闭）')
+         }
+       }
+     } catch (confirmError) {
